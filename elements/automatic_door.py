@@ -12,7 +12,7 @@ class AutomaticControl:
         try:
             self.delta = configuration['security_time']
         except KeyError:
-            self.delta = 2700
+            self.delta = 1800
         self.longitude = configuration['longitude']
         self.latitude = configuration['latitude']
         self.motor = motor
