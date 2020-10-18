@@ -220,7 +220,29 @@ After that, your computer is allowed to connect to your Raspberry without passwd
 
 You can add another computer, in this case, you have to edit the Raspberry file ~/.ssh/authorized_keys and add manually the public key.
 
-### 3.4. Python
+### 3.4. Linux optimization
+
+In this chapter, you'll disable some services to consume less and less energy
+
+disable sound equipment
+
+```yaml
+sudo echo "blacklist snd_bcm2835" > /etc/modprobe.d/blacklist-sound.conf
+```
+
+disable ACT led and HDMI. You'll have to update file /etc/rc.local
+
+```yaml
+sudo vi /etc/rc.local
+
+echo none | tee /sys/class/leds/led0/trigger
+echo 1 | tee /sys/class/leds/led0/brightness
+
+tvservice -o
+```
+
+
+### 3.5. Python
 
 You will use a virtual environment to not overload your system. So, you need to launch some commands before starting
 
@@ -235,7 +257,7 @@ pip install RPi.GPIO
 pip install pyephem
 ```
 
-### 3.5. commands with root privilege
+### 3.6. commands with root privilege
 
 The current program is able to activate/deactivate Wifi. So, it needs to use the ifconfig command with root privilege.
 
@@ -254,9 +276,52 @@ Cmnd_Alias ADMIN_CMDS = /sbin/ifconfig
 ADMIN   ALL=(root) NOPASSWD: ADMIN_CMDS
 ```
 
-### 3.6. program configuration
+### 3.7. program configuration
 
-This program use default configuration file chicken.json. You can change it with option -c.
+This program uses default configuration file chicken.json. You can change it with option -c.
+
+the configuration file looks like:
+
+```yaml
+{
+  "wifi_button_gpio": 23,
+  "motor_button_gpio": 24,
+  "motor_forward_gpio": 4,
+  "motor_backward_gpio": 14,
+  "door_closed_gpio": 5,
+  "door_opened_gpio": 6,
+  "wifi_led_gpio": 10,
+  "motor_timeout": 25,
+  "wifi_timeout": 20,
+  "wifi_at_startup": false,
+  "longitude": "2.294270",
+  "latitude": "48.858823",
+  "log_level": "debug",
+  "security_time": 2700,
+  "wifi_script": "./wifi_control.sh",
+  "wifi_interface": "wlp1s0"
+}
+```
+
+mandatory parameters are :
+- motor_forward_gpio
+- motor_backward_gpio
+
+The minimum action is to commmand motor :)
+
+if <b>wifi_button_gpio</b> is present, it needs <b>wifi_script</b>. if <b>wifi_interface</b> doesn't exist, it use wlan0. When activate Wifi, the program wait <b>wifi_timeout</b> to check if it is connected. If not, it stop it. if <b>wifi_led_gpio</b> exists, the Led blink during startup, is on when Wifi is connected, and off when Wifi disconnected.
+
+if <b>wifi_at_startup</b> exists, it stop Wifi at startup if value is false
+
+if <b>wifi_button_gpio</b> is present, you can start/stop motor manually
+
+if <b>door_closed_gpio</b> and/or <b>door_open_gpio</b> exist, it corresponds to sensor which detect door at the top or bottom. In this case, the motor is stopped. Otherwise, a timeout is used <b>motor_timeout</b>. Default value is 20 seconds
+
+if <b>security_time</b> exists, it add these seconds to the sunset time. To be sur our chicken are in home. Default value is 1800 seconds
+
+if <b>log_level</b> exists, it configure the log level : debug, info, warning, error. Default is warning.
+
+
 
 
 
