@@ -8,6 +8,7 @@
   "wifi_led_gpio": 10,
   "motor_timeout": 25,
   "wifi_timeout": 20,
+  "wifi_at_startup": false,
   "longitude": "5.712607",
   "latitude": "45.089663",
   "log_level": "debug",

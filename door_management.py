@@ -156,8 +156,9 @@ if __name__ == "__main__":
         no_used = configuration['longitude']
         no_used = configuration['latitude']
     except KeyError:
-        logger.error("can't work without GNSS position")
-        exit(1)
+        logger.warning("Be careful, use default position of Eiffel tower")
+        configuration['longitude'] = "2.294270"
+        configuration['latitude'] = "48.858823"
 
     if not RASPBERRY:
         app = GpioUi()
@@ -229,6 +230,13 @@ if __name__ == "__main__":
 
     control = AutomaticControl(configuration, motor)
     control.automatic_control()
+
+    try:
+        wifi_state = configuration['wifi_at_startup']
+        if not wifi_state:
+            deactivate_wifi()
+    except KeyError:
+        pass
 
     try:
         if RASPBERRY:
