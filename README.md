@@ -156,7 +156,7 @@ tmpfs   /var/log        tmpfs   defaults 0      0
 
 #### 3.3.1. Wifi security
 
-You now set somes configuration to improve security
+You now set some configurations to improve security
 
 update the Wifi password by encrypted string, by using the command : wpa_passphrase
 
@@ -171,11 +171,11 @@ network={
 }
 ```
 
-You can now update the file /etc/wpa_supplicant/wpa_supplicant.conf and change the previous chapter network by those generated. And remove the comment line starting by #. Thus, your password is not included in the sdcard.
+You can now update the file /etc/wpa_supplicant/wpa_supplicant.conf and change the previous chapter network by this generated. And remove the comment line starting by #. Thus, your password is not included in the sdcard.
 
 #### 3.3.2. ssh security
 
-You are now generate certificates, to allow only some computer to connect to it.
+You will now generate certificates, to allow only some computer to connect to it.
 The next command generates in $HOME/.ssh directory the files : id_rsa (private key), id_rsa.pub (public key). Keep default option.
 
 ```yaml
@@ -201,13 +201,13 @@ ssh root@192.168.20.100
 usermod --login totof --home /home/totof --move-home pi
 ```
 
-once done, disconnect an connect to your new user
+In this example, the pi user is changed by totof. Once done, disconnect an connect to your new user
 
 ```yaml
 ssh totof@192.168.20.100
 ```
 
-remove root password in /etc/shadow. Change the root line, set * between the first two :
+remove root password in /etc/shadow. Change the root line, set star (*) between the first two colons (:)
 
 ```yaml
 root:*:18545:0:99999:7:::
@@ -278,7 +278,7 @@ pip install pyephem
 
 The current program is able to activate/deactivate Wifi. So, it needs to use the ifconfig command with root privilege.
 
-To run some sudo command from your python script, create a file in the directory /etc/sudoers.d to describe allowed admin commands without password
+To run some sudo command from your python script without password, create a file in the directory /etc/sudoers.d to describe allowed admin commands without password
 
 For example, /etc/sudoers.d/011_totof-nopasswd . This example describes admin user (ADMIN), admin commands (ADMIN_CMDS) and all the admin user to run admin commands without passwd
 
@@ -325,7 +325,7 @@ mandatory parameters are :
 - motor_forward_gpio
 - motor_backward_gpio
 
-The minimum action is to commmand motor :)
+The minimum action is to commmand the motor :)
 
 if <b>wifi_button_gpio</b> is present, it needs <b>wifi_script</b>. if <b>wifi_interface</b> doesn't exist, it use wlan0. When activate Wifi, the program wait <b>wifi_timeout</b> to check if it is connected. If not, it stop it. if <b>wifi_led_gpio</b> exists, the Led blink during startup, is on when Wifi is connected, and off when Wifi disconnected.
 
@@ -343,7 +343,7 @@ if <b>log_file</b> exists, it generates 5 rolling files of 100ko.
 
 ### 3.8. automatic start
 
-Now, all is fine. You just have to start the program at startup. You have to simply add a new line in /etc/rc.local
+Now, all is fine. You just have to launch the program at startup. You have to simply add a new line in /etc/rc.local
 
 
 ```yaml
