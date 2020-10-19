@@ -14,5 +14,6 @@
   "log_level": "debug",
   "security_time": 2700,
   "wifi_script": "./wifi_control.sh",
-  "wifi_interface": "wlp1s0"
+  "wifi_interface": "wlp1s0",
+  "log_file": "/tmp/automatic_door.log"
 }

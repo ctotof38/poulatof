@@ -25,6 +25,8 @@ if not sys.version_info.major == 3:
     sys.exit(1)
 
 import logging
+from logging.handlers import RotatingFileHandler
+from elements.logger import Logger
 import json
 import argparse
 from signal import pause
@@ -101,30 +103,9 @@ def read_config_file(file):
         try:
             return json.loads(line)
         except ValueError:
-            logging.error(line, sys.exc_info())
+            logger.error(line, sys.exc_info())
 
     return None
-
-
-# read log_level from configuration file. Default is WARN
-def set_logging_level(config):
-    try:
-        conf = config['log_level']
-        if 'debug' in conf:
-            logging.basicConfig(level=logging.DEBUG,
-                                format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        elif 'info' in conf:
-            logging.basicConfig(level=logging.INFO,
-                                format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        elif 'warning' in conf:
-            logging.basicConfig(level=logging.WARNING,
-                                format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        elif 'error' in conf:
-            logging.basicConfig(level=logging.ERROR,
-                                format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    except (KeyError, TypeError):
-        logging.basicConfig(level=logging.WARNING,
-                            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
 default_config_file = "chicken.json"
@@ -146,8 +127,8 @@ if __name__ == "__main__":
         print("can't find configuration file, try option -h !")
         exit(1)
 
-    set_logging_level(configuration)
-    logger = logging.getLogger('main')
+    # singleton which configure
+    logger = Logger(configuration)
 
     logger.debug("start door management on Raspberry: " + str(RASPBERRY))
 
