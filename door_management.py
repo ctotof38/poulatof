@@ -24,8 +24,6 @@ if not sys.version_info.major == 3:
     print("Python 3.x or higher is required.")
     sys.exit(1)
 
-import logging
-from logging.handlers import RotatingFileHandler
 from elements.logger import Logger
 import json
 import argparse
@@ -64,6 +62,8 @@ def wifi_activated(state):
     if state == 2:
         if wifi_led:
             wifi_led.on()
+        if wifi_management:
+            wifi_management.stop_wifi_after_timer(callback=wifi_deactivated)
     else:
         if wifi_led:
             wifi_led.off()

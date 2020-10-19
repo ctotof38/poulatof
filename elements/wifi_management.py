@@ -15,12 +15,19 @@ class WifiManagement:
         self.interface = interface
         self.command = None
         self.timeout = timeout_wifi_connected
-        # call by check wifi
+        # callback call by check_wifi, and expected return code
         self.current_callback = None
         self.return_code_expected = 2
+        # security thread which stop Wifi after a period of time
+        self.max_time_wifi_on = None
 
-    def stop_wifi(self, callback=None,):
+    # this command register the callback,
+    # the set check_wifi callback after started
+    #     and check_wifi will use the register callback
+    def stop_wifi(self, callback=None):
         if not self.command or not self.command.is_alive():
+            if self.max_time_wifi_on:
+                self.max_time_wifi_on.cancel()
             self.current_callback = callback
             self.return_code_expected = 0
             if self.interface:
@@ -32,10 +39,14 @@ class WifiManagement:
             return True
         return False
 
-    # the start command memorise callback, and set check_wifi callback, which will use the memorized callback
+    # this command register the callback,
+    # the set check_wifi callback after started
+    #     and check_wifi will use the register callback
     def start_wifi(self, callback=None):
         logger.debug("start_wifi")
         if not self.command or not self.command.is_alive():
+            if self.max_time_wifi_on:
+                self.max_time_wifi_on.cancel()
             self.current_callback = callback
             self.return_code_expected = 2
             if self.interface:
@@ -67,6 +78,10 @@ class WifiManagement:
         command = ScriptAction(action, self.current_callback)
         command.start()
         self.current_callback = None
+
+    def stop_wifi_after_timer(self, timeout=120, callback=None):
+        self.max_time_wifi_on = threading.Timer(timeout, self.stop_wifi, args=(callback,))
+        self.max_time_wifi_on.start()
 
 
 # launch script
