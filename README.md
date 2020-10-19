@@ -1,6 +1,6 @@
 # poulatof
 
-This project will be an automatic door open/close for chicken. It is based on Raspberry Pi Zero W, Raspberry Pi OS and Python. The goal of this project is to have an electronic system power on by battery and solar panel. And the door will be open at sunrise, and close at sunset.
+This project will be an automatic door open/close for chicken. It is based on Raspberry Pi Zero WH, Raspberry Pi OS and Python. The goal of this project is to have an electronic system power on by battery and solar panel. The door will be open at sunrise, and close at sunset. By default, HDMI, sound and Wifi are deactivated for low consumption. You can activate Wifi by pressing an optional button, in this case it's connect to the known Wifi SSID, and you can connect to the Raspberry Pi with SSH. Because most of time, this Raspberry hasn't network, a RTC is added to keep date and time.
 
 All actions describe here were done on a Linux computer, so adjust some of them for a Windows environment.
 
@@ -26,6 +26,15 @@ pip install --upgrade pip
 pip install wheel
 pip install pyephem
 ```
+
+launch the command :
+
+```yaml
+./door_management.sh
+```
+
+It use default chicken.json configuration file. See chapter 3.7 for explanation.
+
 
 ## 3. Raspberry Environment
 
@@ -320,6 +329,17 @@ if <b>door_closed_gpio</b> and/or <b>door_open_gpio</b> exist, it corresponds to
 if <b>security_time</b> exists, it add these seconds to the sunset time. To be sur our chicken are in home. Default value is 1800 seconds
 
 if <b>log_level</b> exists, it configure the log level : debug, info, warning, error. Default is warning.
+
+### 3.8. automatic start
+
+Now, all is fine. You just have to start the program at startup. You have to simply add a new line in /etc/rc.local
+
+
+```yaml
+sudo vi /etc/rc.local
+/home/totof/door_daemon.sh
+```
+
 
 
 
