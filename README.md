@@ -1,6 +1,14 @@
 # poulatof
 
-This project will be an automatic door open/close for chicken. It is based on Raspberry Pi Zero WH, Raspberry Pi OS and Python. The goal of this project is to have an electronic system power on by battery and solar panel. The door will be open at sunrise, and close at sunset. By default, HDMI, sound and Wifi are deactivated for low consumption. You can activate Wifi by pressing an optional button, in this case it's connect to the known Wifi SSID, and you can connect to the Raspberry Pi with SSH. Because most of time, this Raspberry hasn't network, a RTC is added to keep date and time.
+This project will be an automatic door open/close for chicken. It is based on Raspberry Pi Zero WH, Raspberry Pi OS and Python. The goal of this project is to have an electronic system power on by battery and solar panel. The door will be open at sunrise, and close at sunset. By default, HDMI, sound and Wifi are deactivated for low consumption. 
+
+functionalities :
+- if wifi button set, long press start Wifi, short press stop Wifi. When Wifi is on, a security set it off after 15 minutes. To connect to a Wifi network, the configuration must be set (describe in this document)
+- if Wifi LED set, blink during looking for Wifi network, on when Wifi connected, off when Wifi stopped
+- if motor button set, long press stop motor, short press reverse engine
+- if sensor up and down are set, the motor is automatically stopped when it is reached. In any case, the motor is stopped after a period of time
+
+Because most of time, this Raspberry hasn't network, a RTC (Real Time Clock) chip is added to keep date and time.
 
 All actions describe here were done on a Linux computer, so adjust some of them for a Windows environment.
 
@@ -306,6 +314,7 @@ the configuration file looks like:
   "longitude": "2.294270",
   "latitude": "48.858823",
   "log_level": "debug",
+  "log_file": "/tmp/automatic_door.log",
   "security_time": 2700,
   "wifi_script": "./wifi_control.sh",
   "wifi_interface": "wlp1s0"
@@ -329,6 +338,8 @@ if <b>door_closed_gpio</b> and/or <b>door_open_gpio</b> exist, it corresponds to
 if <b>security_time</b> exists, it add these seconds to the sunset time. To be sur our chicken are in home. Default value is 1800 seconds
 
 if <b>log_level</b> exists, it configure the log level : debug, info, warning, error. Default is warning.
+
+if <b>log_file</b> exists, it generates 5 rolling files of 100ko.
 
 ### 3.8. automatic start
 
