@@ -317,31 +317,69 @@ the configuration file looks like:
   "log_file": "/tmp/automatic_door.log",
   "security_time": 2700,
   "wifi_script": "./wifi_control.sh",
-  "wifi_interface": "wlp1s0"
+  "wifi_interface": "wlp1s0",
+  "user_mail": "poulatof@gmail.com",
+  "destination_mail": "red.fox@gmail.com",
+  "password_mail": "machine_password"
 }
 ```
 
 mandatory parameters are :
-- motor_forward_gpio
-- motor_backward_gpio
+- <b>motor_forward_gpio</b>
+- <b>motor_backward_gpio</b>
 
 The minimum action is to commmand the motor :)
 
-if <b>wifi_button_gpio</b> is present, it needs <b>wifi_script</b>. if <b>wifi_interface</b> doesn't exist, it use wlan0. When activate Wifi, the program wait <b>wifi_timeout</b> to check if it is connected. If not, it stop it. if <b>wifi_led_gpio</b> exists, the Led blink during startup, is on when Wifi is connected, and off when Wifi disconnected.
+if <b>wifi_button_gpio</b> is present, it needs <b>wifi_script</b>. if <b>wifi_interface</b> doesn't exist, it use wlan0. When activate Wifi by button, the program wait <b>wifi_timeout</b> to check if it is connected. If not, it stop it. if <b>wifi_led_gpio</b> exists, the Led blink during startup, is on when Wifi is connected, and off when Wifi disconnected.
 
 if <b>wifi_at_startup</b> exists, it stop Wifi at startup if value is false
 
-if <b>wifi_button_gpio</b> is present, you can start/stop motor manually
-
 if <b>door_closed_gpio</b> and/or <b>door_open_gpio</b> exist, it corresponds to sensor which detect door at the top or bottom. In this case, the motor is stopped. Otherwise, a timeout is used <b>motor_timeout</b>. Default value is 20 seconds
 
+if <b>motor_button_gpio</b> exists, you can start/stop the door manually
+
 if <b>security_time</b> exists, it add these seconds to the sunset time. To be sur our chicken are in home. Default value is 1800 seconds
+
+<b>longitude</b> and <b>latitude</b> are used to calculate sunset and sunrise. If absent, use default Eiffel tower position.
 
 if <b>log_level</b> exists, it configure the log level : debug, info, warning, error. Default is warning.
 
 if <b>log_file</b> exists, it generates 5 rolling files of 100ko.
 
-### 3.8. automatic start
+if <b>user_mail</b> and <b>destination_mail</b> exist, the software is ready to send email each time the Wifi is activated. In this case, you can set the user_mail password by two options:
+- set it into <b>password_mail</b> key in the configuration file
+- update in the source elements/email_sender.py the line:
+
+```yaml
+password = "gmail_appli_passwd"
+```
+Thus, it's a little bit more complicated to find it ;)
+
+### 3.8. email configuration
+
+To use the email mechanism, you have to create a google account with an application password:
+https://support.google.com/accounts/answer/185833?hl=en
+
+```yaml
+create google account
+activate 2 step verification
+	go to manage you google account
+	Security
+	Signing in to Google
+	2-Step verification
+		Add your phone number
+
+Once done, return to this menu, you have a new option
+	go to manage you google account
+	Security
+	Signing in to Google
+	Add passwords
+		You have to set a machine type, a name, and it generate a long password
+```
+
+You can now use it in your python mail script to connect to the gmail account to send email
+
+### 3.9. automatic start
 
 Now, all is fine. You just have to launch the program at startup. You have to simply add a new line in /etc/rc.local
 
