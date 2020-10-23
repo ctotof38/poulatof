@@ -363,18 +363,18 @@ https://support.google.com/accounts/answer/185833?hl=en
 ```yaml
 create google account
 activate 2 step verification
-	go to manage you google account
-	Security
-	Signing in to Google
-	2-Step verification
-		Add your phone number
+   go to manage you google account
+   Security
+   Signing in to Google
+   2-Step verification
+      Add your phone number
 
 Once done, return to this menu, you have a new option
-	go to manage you google account
-	Security
-	Signing in to Google
-	Add passwords
-		You have to set a machine type, a name, and it generate a long password
+   go to manage you google account
+   Security
+   Signing in to Google
+   Add passwords
+      You have to set a machine type, a name, and it generate a long password
 ```
 
 You can now use it in your python mail script to connect to the gmail account to send email
