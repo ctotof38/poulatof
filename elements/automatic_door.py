@@ -32,12 +32,12 @@ class AutomaticControl:
         today = datetime.utcnow()
 
         if open_hour < close_hour:
-            logger.debug("next open UTC: " + str(open_hour))
+            logger.info("next open UTC: " + str(open_hour))
             next_time = (open_hour - today).total_seconds()
             self.timer = threading.Timer(next_time, self.open_door)
             self.timer.start()
         else:
-            logger.debug("next close UTC: " + str(close_hour))
+            logger.info("next close UTC: " + str(close_hour))
             next_time = (close_hour - today).total_seconds()
             self.timer = threading.Timer(next_time, self.close_door)
             self.timer.start()

@@ -104,7 +104,7 @@ class AdvancedMotor:
         if not self.is_open_sensor_pressed():
             if self.timer:
                 self.timer.cancel()
-            logger.debug("open door")
+            logger.info("open door")
             self.motor.forward()
             self.timer = threading.Timer(self.max_time, self.stop, args=("max time reached",))
             self.timer.start()
@@ -116,7 +116,7 @@ class AdvancedMotor:
         if not self.is_close_sensor_pressed():
             if self.timer:
                 self.timer.cancel()
-            logger.debug("close door")
+            logger.info("close door")
             self.motor.backward()
             self.timer = threading.Timer(self.max_time, self.stop, args=("max time reached",))
             self.timer.start()
@@ -128,7 +128,7 @@ class AdvancedMotor:
         if self.motor.is_active:
             if self.timer:
                 self.timer.cancel()
-            logger.debug("reverse door")
+            logger.info("reverse door")
             self.motor.reverse()
             self.timer = threading.Timer(self.max_time, self.stop, args=("max time reached",))
             self.timer.start()
@@ -141,9 +141,9 @@ class AdvancedMotor:
             if self.timer:
                 self.timer.cancel()
             if message:
-                logger.debug("stop door: " + message)
+                logger.info("stop door: " + message)
             else:
-                logger.debug("stop door")
+                logger.info("stop door")
             self.motor.stop()
             return True
         return False
