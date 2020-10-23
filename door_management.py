@@ -63,7 +63,8 @@ def wifi_activated(state):
         if wifi_led:
             wifi_led.on()
         if wifi_management:
-            wifi_management.stop_wifi_after_timer(callback=wifi_deactivated)
+            # Wifi activated maximum of time : 600 seconds
+            wifi_management.stop_wifi_after_timer(callback=wifi_deactivated, timeout=600)
     else:
         if wifi_led:
             wifi_led.off()
@@ -130,7 +131,7 @@ if __name__ == "__main__":
     # singleton which configure
     logger = Logger(configuration)
 
-    logger.debug("start door management on Raspberry: " + str(RASPBERRY))
+    logger.info("start door management on Raspberry: " + str(RASPBERRY))
 
     try:
         # just read mandatory fields to generate error if they are forgotten
