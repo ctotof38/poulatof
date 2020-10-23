@@ -33,6 +33,7 @@ from elements.advanced_elements import AdvancedLed
 from elements.advanced_elements import AdvancedMotor
 from elements.wifi_management import WifiManagement
 from elements.automatic_door import AutomaticControl
+from elements.email_sender import EmailSender
 import threading
 
 RASPBERRY = True
@@ -62,6 +63,8 @@ def wifi_activated(state):
     if state == 2:
         if wifi_led:
             wifi_led.on()
+        # send current log if exists and configured
+        email.send()
         if wifi_management:
             # Wifi activated maximum of time : 600 seconds
             wifi_management.stop_wifi_after_timer(callback=wifi_deactivated, timeout=600)
@@ -128,15 +131,15 @@ if __name__ == "__main__":
         print("can't find configuration file, try option -h !")
         exit(1)
 
-    # singleton which configure
+    # rotate log configuration
     logger = Logger(configuration)
 
     logger.info("start door management on Raspberry: " + str(RASPBERRY))
 
     try:
-        # just read mandatory fields to generate error if they are forgotten
-        no_used = configuration['longitude']
-        no_used = configuration['latitude']
+        # just read mandatory fields to generate error if they missed
+        configuration['longitude']
+        configuration['latitude']
     except KeyError:
         logger.warning("Be careful, use default position of Eiffel tower")
         configuration['longitude'] = "2.294270"
@@ -209,6 +212,10 @@ if __name__ == "__main__":
             motor.set_open_sensor(configuration['door_opened_gpio'])
     except KeyError:
         pass
+
+    # prepare email sender if configuration is done. It will be used each time wifi is activated
+    # if there is log to send
+    email = EmailSender(configuration, logger)
 
     control = AutomaticControl(configuration, motor)
     control.automatic_control()
