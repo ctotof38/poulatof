@@ -12,8 +12,11 @@
   "longitude": "5.712607",
   "latitude": "45.089663",
   "log_level": "info",
-  "security_time": 2700,
+  "security_time": 2200,
   "wifi_script": "./wifi_control.sh",
   "wifi_interface": "wlp1s0",
-  "log_file": "/tmp/automatic_door.log"
+  "log_file": "/tmp/automatic_door.log",
+  "user_mail": "chicken.coop@gmail.com",
+  "destination_mail": "",
+  "password_mail": ""
 }
