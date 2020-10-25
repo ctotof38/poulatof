@@ -104,12 +104,7 @@ def stop_door():
 def read_config_file(file):
     with open(file, 'r') as f:
         line = f.read()
-        try:
-            return json.loads(line)
-        except ValueError:
-            logger.error(line, sys.exc_info())
-
-    return None
+        return json.loads(line)
 
 
 default_config_file = "chicken.json"
@@ -127,8 +122,8 @@ if __name__ == "__main__":
             configuration = read_config_file(parameters.config)
         else:
             configuration = read_config_file(default_config_file)
-    except FileNotFoundError:
-        print("can't find configuration file, try option -h !")
+    except (FileNotFoundError, json.decoder.JSONDecodeError):
+        print("can't find configuration file, or bad content, try option -h !")
         exit(1)
 
     # rotate log configuration
