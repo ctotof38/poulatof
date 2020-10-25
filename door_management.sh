@@ -7,4 +7,4 @@ HOME_SHELL=$(pwd)
 cd $HOME_SHELL >/dev/null
 source venv/bin/activate
 
-python $HOME_SHELL/door_management.py
+python $HOME_SHELL/door_management.py $*
