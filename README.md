@@ -1,12 +1,12 @@
 # poulatof
 
-This project will be an automatic door open/close for chicken. It is based on Raspberry Pi Zero WH, Raspberry Pi OS and Python. The goal of this project is to have an electronic system power on by battery and solar panel. The door will be open at sunrise, and close at sunset. By default, HDMI, sound and Wifi are deactivated for low consumption. 
+This project will be an automatic door open/close for chicken. It is based on Raspberry Pi Zero WH, Raspberry Pi OS and Python. The goal of this project is to have an electronic system power on by battery and solar panel. The door will be open at sunrise, and close at sunset. By default, HDMI, sound and Wifi are deactivated for low consumption. This system use UTC time according to GNSS position, so no need to use any timezone.
 
 functionalities :
-- if wifi button set, long press start Wifi, short press stop Wifi. When Wifi is on, a security set it off after 15 minutes. To connect to a Wifi network, the configuration must be set (describe in this document)
-- if Wifi LED set, blink during looking for Wifi network, on when Wifi connected, off when Wifi stopped
-- if motor button set, long press stop motor, short press reverse engine
-- if sensor up and down are set, the motor is automatically stopped when it is reached. In any case, the motor is stopped after a period of time
+- if the wifi button is set, long press start Wifi, short press stop Wifi. When Wifi is on, a security set it off after 15 minutes. To connect to a Wifi network, the configuration must be set (describe in this document)
+- if the wifi LED is set, blink during looking for Wifi network, on when Wifi connected, off when Wifi stopped
+- if the motor button is set, long press stop motor, short press reverse engine
+- if the sensor up and down are set, the motor is automatically stopped when it is reached. In any case, the motor is stopped after a period of time
 
 Because most of time, this Raspberry hasn't network, a RTC (Real Time Clock) chip is added to keep date and time.
 
@@ -41,7 +41,7 @@ launch the command :
 ./door_management.sh
 ```
 
-It use default chicken.json configuration file. See chapter 3.7 for explanation.
+It use default chicken.json configuration file. See chapter 3.8 for explanation.
 
 
 ## 3. Raspberry Environment
@@ -258,8 +258,28 @@ echo 1 | tee /sys/class/leds/led0/brightness
 tvservice -o
 ```
 
+### 3.5. Software installation
 
-### 3.5. Python
+In the current directory, you'll find a script named : save.sh
+
+launch it, it generate a file : ../door_management.tgz
+
+You just have to send it to your Raspberry, and extract it where you want, for example:
+
+send it to /tmp with previous configuration to the Raspberry
+
+```yaml
+scp -P 10022 ../door_management.tgz totof@my_chicken_raspberry:/tmp
+```
+
+and in Raspberry, extract it in HOME directory :
+
+```yaml
+cd
+tar xf /tmp/door_management.tgz
+```
+
+### 3.6. Python
 
 You will use a virtual environment to not overload your system. So, you need to launch some commands before starting
 
@@ -274,7 +294,7 @@ pip install RPi.GPIO
 pip install pyephem
 ```
 
-### 3.6. commands with root privilege
+### 3.7. commands with root privilege
 
 The current program is able to activate/deactivate Wifi. So, it needs to use the ifconfig command with root privilege.
 
@@ -293,7 +313,7 @@ Cmnd_Alias ADMIN_CMDS = /sbin/ifconfig
 ADMIN   ALL=(root) NOPASSWD: ADMIN_CMDS
 ```
 
-### 3.7. program configuration
+### 3.8. program configuration
 
 This program uses default configuration file chicken.json. You can change it with option -c.
 
@@ -346,7 +366,7 @@ if <b>log_level</b> exists, it configure the log level : debug, info, warning, e
 
 if <b>log_file</b> exists, it generates 5 rolling files of 100ko.
 
-if <b>user_mail</b> and <b>destination_mail</b> exist, the software is ready to send email each time the Wifi is activated. In this case, you can set the user_mail password by two options:
+if <b>user_mail</b> and <b>destination_mail</b> exist, the software is ready to send email each time the Wifi is activated. In this case, you can set the user_mail password by using two options:
 - set it into <b>password_mail</b> key in the configuration file
 - update in the source elements/email_sender.py the line:
 
@@ -355,7 +375,7 @@ password = "gmail_appli_passwd"
 ```
 Thus, it's a little bit more complicated to find it ;)
 
-### 3.8. email configuration
+### 3.9. email configuration
 
 To use the email mechanism, you have to create a google account with an application password:
 https://support.google.com/accounts/answer/185833?hl=en
@@ -379,7 +399,7 @@ Once done, return to this menu, you have a new option
 
 You can now use it in your python mail script to connect to the gmail account to send email
 
-### 3.9. automatic start
+### 3.10. automatic start
 
 Now, all is fine. You just have to launch the program at startup. You have to simply add a new line in /etc/rc.local
 
