@@ -129,10 +129,13 @@ if __name__ == "__main__":
     # rotate log configuration
     logger = Logger(configuration)
 
-    logger.info("start door management on Raspberry: " + str(RASPBERRY))
+    if RASPBERRY:
+        logger.info("start door management on Raspberry")
+    else:
+        logger.info("start door management on Linux")
 
     try:
-        # just read mandatory fields to generate error if they missed
+        # just read mandatory fields to use default value if absent
         configuration['longitude']
         configuration['latitude']
     except KeyError:
@@ -161,6 +164,7 @@ if __name__ == "__main__":
                         timeout = 20
                     wifi_management = WifiManagement(configuration['wifi_script'], configuration['wifi_interface'],
                                                      timeout_wifi_connected=timeout)
+                logger.info("Wifi button activated")
             except KeyError:
                 logger.error("if Wifi button, need wifi script and interface")
                 exit(1)
@@ -174,12 +178,14 @@ if __name__ == "__main__":
     try:
         if configuration['wifi_led_gpio']:
             wifi_led = AdvancedLed(configuration['wifi_led_gpio'])
+            logger.info("wifi Led activated")
     except KeyError:
         pass
 
     try:
         if configuration['motor_button_gpio']:
             motor_button = AdvancedButton(configuration['motor_button_gpio'], toggle_door, stop_door)
+            logger.info("motor button activated")
     except KeyError:
         pass
 
@@ -199,12 +205,14 @@ if __name__ == "__main__":
     try:
         if configuration['door_closed_gpio'] and motor:
             motor.set_close_sensor(configuration['door_closed_gpio'])
+            logger.info("close door sensor activated")
     except KeyError:
         pass
 
     try:
         if configuration['door_opened_gpio'] and motor:
             motor.set_open_sensor(configuration['door_opened_gpio'])
+            logger.info("open door sensor activated")
     except KeyError:
         pass
 
