@@ -340,7 +340,8 @@ the configuration file looks like:
   "wifi_interface": "wlp1s0",
   "user_mail": "poulatof@gmail.com",
   "destination_mail": "red.fox@gmail.com",
-  "password_mail": "machine_password"
+  "password_mail": "machine_password",
+  "csv_report": false
 }
 ```
 
@@ -374,6 +375,22 @@ if <b>user_mail</b> and <b>destination_mail</b> exist, the software is ready to 
 password = "gmail_appli_passwd"
 ```
 Thus, it's a little bit more complicated to find it ;)
+
+if <b>csv_report</b> is true, the report has comma separator. Otherwise, it seems a text table
+
+So, when email is activated, each time you activate Wifi, you receive a report. And the log rotates, so you don't receive it twice. Here is a text example:
+```yaml
++---------------------+-------+
+| 2020-10-23 19:23:32 | close |
+| 2020-10-24 08:04:59 | open  |
+| 2020-10-24 19:21:56 | close |
+| 2020-10-25 07:06:20 | open  |
+| 2020-10-25 18:20:22 | close |
+| 2020-10-26 07:07:41 | open  |
++---------------------+-------+
+```
+This case shows the time change the 2020-10-25 :)
+
 
 ### 3.9. email configuration
 
@@ -409,6 +426,11 @@ sudo vi /etc/rc.local
 /home/totof/door_daemon.sh
 ```
 
+## 4. The ultimate configuration
+
+When all is ready, you just have to configure the Wifi network of your Raspberry with the shared Wifi of your smartphone. Then, system is working on its own. And when you want to have a resume, you just have to active your shared Wifi, press Wifi button of this system, and you'll receive the last actions.
+
+If you are a little nervous with autonomous system, you can add in the root crontab a reboot machine each X days. But you lose your report.
 
 
 
