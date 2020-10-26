@@ -57,7 +57,7 @@ class Logger:
     def get_current_log(self):
         if self.handler:
             with open(self.configuration['log_file'], 'r') as file:
-                data = file.read()
+                data = file.readlines()
             self.handler.doRollover()
             return data
 

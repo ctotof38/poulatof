@@ -4,6 +4,7 @@ from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 import threading
 import logging
+from elements.format_email_body import *
 
 mail_logger = logging.getLogger('email_sender')
 
@@ -16,6 +17,8 @@ class EmailSender:
         self.logger = logger
         self.configuration = configuration
         self.no_active = False
+        self.csv_report = False
+
         try:
             # mandatory fields to activate service
             user = configuration["user_mail"]
@@ -28,6 +31,12 @@ class EmailSender:
             # no mandatory fields, so, email not active
             mail_logger.info("service not active, no enough configuration")
             self.no_active = True
+
+        try:
+            self.csv_report = configuration['csv_report']
+        except KeyError:
+            # used text report by default
+            pass
 
     def send(self):
         if self.no_active:
@@ -48,13 +57,16 @@ class EmailSender:
                 raise KeyError
         except KeyError:
             password = "gmail_appli_passwd"
+        mail_logger.debug("ready to send with passwd : " + password)
 
         timestamp = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
         msg["Subject"] = 'report at ' + timestamp
 
         body = self.logger.get_current_log()
         if body:
+            body = format_data(body, self.csv_report)
 
+        if body:
             msg.attach(MIMEText(body, "plain"))
 
             text = msg.as_string()

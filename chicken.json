@@ -18,5 +18,6 @@
   "log_file": "/tmp/automatic_door.log",
   "user_mail": "chicken.coop@gmail.com",
   "destination_mail": "",
-  "password_mail": ""
+  "password_mail": "",
+  "csv_report": false
 }
