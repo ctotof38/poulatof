@@ -29,6 +29,7 @@ import json
 import argparse
 from signal import pause
 from elements.advanced_elements import AdvancedButton
+from elements.advanced_elements import MasterButton
 from elements.advanced_elements import AdvancedLed
 from elements.advanced_elements import AdvancedMotor
 from elements.wifi_management import WifiManagement
@@ -101,6 +102,10 @@ def stop_door():
     return False
 
 
+def other_action():
+    logger.debug("other action")
+
+
 def read_config_file(file):
     with open(file, 'r') as f:
         line = f.read()
@@ -114,7 +119,8 @@ configuration = None
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", help=u'configuration file, default is chicken.json')
+    parser.add_argument('-c', '--config', help=u'configuration file, default is chicken.json', required=False)
+    parser.add_argument('-d', '--debug', action='store_true', help=u'activate debug log', required=False)
     parameters = parser.parse_args()
 
     try:
@@ -125,6 +131,9 @@ if __name__ == "__main__":
     except (FileNotFoundError, json.decoder.JSONDecodeError):
         print("can't find configuration file, or bad content, try option -h !")
         exit(1)
+
+    if parameters.debug:
+        configuration['log_level'] = 'debug'
 
     # rotate log configuration
     logger = Logger(configuration)
@@ -171,7 +180,6 @@ if __name__ == "__main__":
             except FileNotFoundError:
                 logger.error("if Wifi button, wifi script need to be executable")
                 exit(1)
-
     except KeyError:
         pass
 
@@ -184,7 +192,8 @@ if __name__ == "__main__":
 
     try:
         if configuration['motor_button_gpio']:
-            motor_button = AdvancedButton(configuration['motor_button_gpio'], toggle_door, stop_door)
+            motor_button = MasterButton(configuration['motor_button_gpio'], toggle_door, other_action,
+                                        multiple_callback=stop_door)
             logger.info("motor button activated")
     except KeyError:
         pass

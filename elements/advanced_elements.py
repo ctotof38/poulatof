@@ -26,11 +26,11 @@ logger = logging.getLogger('advanced_elements')
 #   default value for short press = 100ms
 #   default value for long press = 2000ms
 class AdvancedButton:
-    def __init__(self, gpio, short_callback, long_callback, short_press=100, long_press=2000):
+    def __init__(self, gpio, short_callback, long_callback, short_press_time=100, long_press_time=2000):
         self.button = Button(gpio)
         self.press_time = 0
-        self.long_press = long_press
-        self.short_press = short_press
+        self.long_press = long_press_time
+        self.short_press = short_press_time
         self.short_callback = short_callback
         self.long_callback = long_callback
         self.button.when_pressed = self.pressed
@@ -44,10 +44,51 @@ class AdvancedButton:
         if time_pressed > self.long_press:
             logger.debug("long press")
             if self.long_callback:
-                self.long_callback()
+                callback = threading.Timer(0.005, self.long_callback)
+                callback.start()
         elif time_pressed > self.short_press and self.short_callback:
             logger.debug("short press")
-            self.short_callback()
+            callback = threading.Timer(0.005, self.short_callback)
+            callback.start()
+
+
+# class which implement Button which manage short, long and multiple press.
+#   default value for multiple press = 40ms
+#   default value for short press = 160ms
+#   default value for long press = 2000ms
+# if multiple time < press time < short press, and multiple_number reached, then call multiple_callback if not None
+# and the multiple press is not exceeded 2 seconds
+class MasterButton(AdvancedButton):
+    def __init__(self, gpio, short_callback, long_callback, short_press_time=160, long_press_time=2000,
+                 multiple_callback=None, multiple_press_time=40, multiple_number=3):
+        super().__init__(gpio, short_callback, long_callback, short_press_time, long_press_time)
+        self.multiple_callback = multiple_callback
+        self.multiple_press = multiple_press_time
+        self.multiple_number = multiple_number
+        self.current_count = 0
+        self.last_release = time.time()
+
+    def released(self):
+        current_release = time.time()
+        delta_release = current_release - self.last_release
+        time_pressed = int(round(current_release * 1000)) - self.press_time
+        self.last_release = current_release
+
+        if self.multiple_callback and self.short_press > time_pressed > self.multiple_press:
+            self.current_count += 1
+            if self.current_count >= self.multiple_number and delta_release < 2:
+                self.current_count = 0
+                callback = threading.Timer(0.005, self.multiple_callback)
+                callback.start()
+        else:
+            self.current_count = 0
+            if time_pressed > self.long_press:
+                if self.long_callback:
+                    callback = threading.Timer(0.005, self.long_callback)
+                    callback.start()
+            elif time_pressed > self.short_press and self.short_callback:
+                callback = threading.Timer(0.005, self.short_callback)
+                callback.start()
 
 
 # class which implement Led and add blink method
@@ -141,7 +182,7 @@ class AdvancedMotor:
             if self.timer:
                 self.timer.cancel()
             if message:
-                logger.info("stop door: " + message)
+                logger.warning("stop door: " + message)
             else:
                 logger.info("stop door")
             self.motor.stop()
