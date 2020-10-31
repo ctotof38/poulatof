@@ -173,6 +173,12 @@ network={
 
 You can now update the file /etc/wpa_supplicant/wpa_supplicant.conf and change the previous chapter network by this generated. And remove the comment line starting by #. Thus, your password is not included in the sdcard.
 
+<b>Note, that if you change password or SSID</b> in this file with a new one, you have to launch next command to reconfigure the WIFI:
+
+```yaml
+sudo wpa_cli -i wlan0 reconfigure
+```yaml
+
 #### 3.3.2. ssh security
 
 You will now generate certificates, to allow only some computer to connect to it.
@@ -192,6 +198,18 @@ Activate the root account by setting a password
 
 ```yaml
 sudo passwd root
+```
+
+allow ssh root connection. Update file /etc/ssh_config/sshd_config, and add or update line:
+```yaml
+PermitRootLogin yes
+```
+
+Then, restart ssh services
+
+```yaml
+sudo /etc/init.d/ssh restart
+[ ok ] Restarting ssh (via systemctl): ssh.service.
 ```
 
 disconnect all pi user, and connect to root
@@ -244,7 +262,7 @@ In this chapter, you'll disable some services to consume less and less energy
 disable sound equipment
 
 ```yaml
-sudo echo "blacklist snd_bcm2835" > /etc/modprobe.d/blacklist-sound.conf
+echo "blacklist snd_bcm2835" |sudo tee /etc/modprobe.d/blacklist-sound.conf
 ```
 
 disable ACT led and HDMI. You'll have to update file /etc/rc.local
