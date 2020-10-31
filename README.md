@@ -5,7 +5,7 @@ This project will be an automatic door open/close for chicken. It is based on Ra
 functionalities :
 - if the wifi button is set, long press start Wifi, short press stop Wifi. When Wifi is on, a security set it off after 15 minutes. To connect to a Wifi network, the configuration must be set (describe in this document)
 - if the wifi LED is set, blink during looking for Wifi network, on when Wifi connected, off when Wifi stopped
-- if the motor button is set, long press stop motor, short press reverse engine
+- if the motor button is set, triple quickly press stop engine, short press reverse engine, and long press ready for a specific action (not defined currently)
 - if the sensor up and down are set, the motor is automatically stopped when it is reached. In any case, the motor is stopped after a period of time
 
 Because most of time, this Raspberry hasn't network, a RTC (Real Time Clock) chip is added to keep date and time.
