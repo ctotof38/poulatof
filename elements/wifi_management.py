@@ -7,6 +7,7 @@ logger = logging.getLogger('wifi_management')
 
 
 # manage Wifi script to start and stop interface and look for network
+# timeout_wifi_connected is the maximum time used to connect to network
 class WifiManagement:
     def __init__(self, wifi_script, interface=None, timeout_wifi_connected=20):
         if not os.access(wifi_script, os.X_OK):
