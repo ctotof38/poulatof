@@ -35,6 +35,8 @@ from elements.advanced_elements import AdvancedMotor
 from elements.wifi_management import WifiManagement
 from elements.automatic_door import AutomaticControl
 from elements.email_sender import EmailSender
+from elements.http_server import ApiHttpServer
+from elements.http_server import CommandRequestHandler
 import threading
 
 RASPBERRY = True
@@ -48,6 +50,7 @@ except ModuleNotFoundError:
 def wifi_deactivated(state):
     logger.debug("wifi deactivated: " + str(state))
     if state == 0:
+        stop_http_server()
         if wifi_led:
             wifi_led.off()
 
@@ -66,6 +69,7 @@ def wifi_activated(state):
             wifi_led.on()
         # send current log if exists and configured
         email.send()
+        start_http_server()
         if wifi_management:
             # Wifi activated maximum of time : 600 seconds
             wifi_management.stop_wifi_after_timer(callback=wifi_deactivated, timeout=600)
@@ -95,6 +99,18 @@ def toggle_door():
     return False
 
 
+def open_door():
+    if motor:
+        return motor.open_door()
+    return False
+
+
+def close_door():
+    if motor:
+        return motor.close_door()
+    return False
+
+
 # return True if motor was active and stopped
 def stop_door():
     if motor:
@@ -106,6 +122,22 @@ def other_action():
     logger.debug("other action")
 
 
+def start_http_server():
+    global http_server
+
+    if not http_server:
+        # activate Http server if Wifi stay activated
+        http_server = ApiHttpServer(server_address, CommandRequestHandler, (open_door, close_door))
+
+
+def stop_http_server():
+    global http_server
+
+    if http_server:
+        http_server.stop_server()
+        http_server = None
+
+
 def read_config_file(file):
     with open(file, 'r') as f:
         line = f.read()
@@ -115,6 +147,8 @@ def read_config_file(file):
 default_config_file = "chicken.json"
 wifi_timeout = 20
 configuration = None
+server_address = ('', 54321)
+http_server = None
 
 if __name__ == "__main__":
 
@@ -234,7 +268,10 @@ if __name__ == "__main__":
 
     try:
         wifi_state = configuration['wifi_at_startup']
-        if not wifi_state:
+        if wifi_state:
+            # activate Http server if Wifi stay activated
+            http_server = ApiHttpServer(server_address, CommandRequestHandler, (open_door, close_door))
+        else:
             deactivate_wifi()
     except KeyError:
         pass
