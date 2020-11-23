@@ -8,6 +8,8 @@ logger = logging.getLogger('wifi_management')
 
 # manage Wifi script to start and stop interface and look for network
 # timeout_wifi_connected is the maximum time used to connect to network
+# according to parameter, the wifi script used can return : 0, 1, 2 or 3. The last is an error.
+# another code should be returned : 255, if timeout expired
 class WifiManagement:
     def __init__(self, wifi_script, interface=None, timeout_wifi_connected=20):
         if not os.access(wifi_script, os.X_OK):
@@ -35,7 +37,7 @@ class WifiManagement:
                 action = [self.wifi_script, "-d", "-n", self.interface]
             else:
                 action = [self.wifi_script, "-d"]
-            self.command = ScriptAction(action, self.check_wifi, timeout=self.timeout)
+            self.command = ScriptAction(action, self.__check_wifi__, timeout=self.timeout)
             self.command.start()
             return True
         return False
@@ -54,22 +56,24 @@ class WifiManagement:
                 action = [self.wifi_script, "-a", "-n", self.interface]
             else:
                 action = [self.wifi_script, "-a"]
-            self.command = ScriptAction(action, self.check_wifi, timeout=self.timeout)
+            self.command = ScriptAction(action, self.__check_wifi__, timeout=self.timeout)
             self.command.start()
             return True
         return False
 
-    # call start_callback if exists
-    #   255 if start is incorrect
+    # call current_callback if exists
+    #   return_code is the result of start or stop
+    # this function can return
     #   0 if wifi down
     #   1 if wifi up but not connected
     #   2 if wifi up and connected
-    def check_wifi(self, return_code):
+    #   3 if an error occurs (bad interface, ...)
+    def __check_wifi__(self, return_code):
         logger.debug("check_wifi : " + str(return_code))
         if return_code != 0:
             if self.current_callback:
-                self.current_callback(255)
-            return 255
+                self.current_callback(3)
+            return 3
 
         if self.interface:
             action = [self.wifi_script, "-c", "-n", self.interface, "-t", str(self.timeout), "-r",

@@ -8,16 +8,32 @@ usage() {
 	printf "   -c : check\n"
 	printf "   -n <name> : interface name, default is wlan0\n"
 	printf "   -t <timeout> : for check function, wait until timeout the codeExpected. Default is 2\n"
-	printf "   -r <codeExpected> : 0=wifi down, 1=wifi up not connected, 2=wifi connected"
+	printf "   -r <codeExpected> : 0=wifi down, 1=wifi up not connected, 2=wifi connected\n"
 	exit 1
 }
 
 
-# check wifi state
+# check if wifi interface is correct
+# return 0 if ok
+# return 3 otherwise
+check_interface() {
+	ifconfig -s $interface >/dev/null 2>&1
+	if [ $? -eq 0 ]
+	then
+		return 0
+	fi
+	exit 3
+}
+
+
+# check wifi state. Wait for codeExpected
 #   0 if wifi down
 #   1 if wifi up, but not connected
 #   2 if wifi up and connected
+# Be careful, if interface name has size greater than 8 characters, next command doesn't work,
+#             because ifconfig -s truncate name !
 check_wifi() {
+	check_interface
 	# return BM, BMU, BMRU according to state of wlan interface
 	# B=Broadcast, M=Multicast, U=up, R=Running
 	# BM = interface down
@@ -25,26 +41,29 @@ check_wifi() {
 	# BMRU = interface up and connected
 	if [ $timeout -eq 0 ]
 	then
-	  code=$(ifconfig -s $interface | sed -n "s/^${interface}.*[0-9] //p" | sed -e 's/BMRU/2/' -e 's/BMU/1/' -e 's/BM/0/')
-	  return $code
+		code=$(ifconfig -s $interface | sed -n "s/^${interface}.*[0-9] //p" | sed -e 's/BMRU/2/' -e 's/BMU/1/' -e 's/BM/0/')
+		return $code
 	else
-	  let count=$timeout
-	  code=255
-	  while [ $code -ne $returnCode -a $count -gt 0 ]
-	  do
-	    let count=$count-2
-	    code=$(ifconfig -s $interface | sed -n "s/^${interface}.*[0-9] //p" | sed -e 's/BMRU/2/' -e 's/BMU/1/' -e 's/BM/0/')
-	    sleep 2
-	  done
-	  return $code
-  fi
+		let count=$timeout
+		# arbitrary value different of expected
+		code=100
+		while [ $code -ne $codeExpected -a $count -gt 0 ]
+		do
+			let count=$count-2
+			code=$(ifconfig -s $interface | sed -n "s/^${interface}.*[0-9] //p" | sed -e 's/BMRU/2/' -e 's/BMU/1/' -e 's/BM/0/')
+			sleep 2
+		done
+		return $code
+	fi
 }
 
 wifi_down() {
+	check_interface
 	sudo ifconfig $interface down
 }
 
 wifi_up() {
+	check_interface
 	sudo ifconfig $interface up
 }
 
@@ -53,7 +72,7 @@ wifi_up() {
 # ----------------------------------------
 interface=wlan0
 timeout=0
-returnCode=2
+codeExpected=2
 
 if [ $# -eq 0 ]
 then
@@ -68,8 +87,8 @@ while getopts 'cadn:t:r:' flag; do
 		d) action=1 ;;
 		c) action=2 ;;
 		n) interface="${OPTARG}" ;;
-    t) timeout="${OPTARG}" ;;
-    r) returnCode="${OPTARG}" ;;
+		t) timeout="${OPTARG}" ;;
+		r) codeExpected="${OPTARG}" ;;
 		*) usage ;;
 	esac
 done

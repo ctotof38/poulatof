@@ -28,6 +28,10 @@ from elements.logger import Logger
 import json
 import argparse
 from signal import pause
+from datetime import datetime
+import threading
+import os
+import os.path
 from elements.advanced_elements import AdvancedButton
 from elements.advanced_elements import MasterButton
 from elements.advanced_elements import AdvancedLed
@@ -37,7 +41,6 @@ from elements.automatic_door import AutomaticControl
 from elements.email_sender import EmailSender
 from elements.http_server import ApiHttpServer
 from elements.http_server import CommandRequestHandler
-import threading
 
 RASPBERRY = True
 try:
@@ -47,9 +50,29 @@ except ModuleNotFoundError:
     RASPBERRY = False
 
 
+# action on Wifi error
+#    problem wifi, bad interface...
+# in this case, save current log in flash, and reboot
+# if file already exists with same date and just hour, stop software, because
+# repeating problem
+def wifi_error():
+    logger.error("wifi error")
+    saved_file = "door_error.log." + datetime.utcnow().strftime("%Y-%m-%dT%H")
+    if os.path.isfile(saved_file):
+        logger.error("stop process to not loop, error already occurs !")
+        os._exit(1)
+    # save log before reboot
+    current_log = logger.get_current_log()
+    with open(saved_file, 'w') as file:
+        file.writelines(current_log)
+    # now, reboot server
+
+
 def wifi_deactivated(state):
     logger.debug("wifi deactivated: " + str(state))
-    if state == 0:
+    if state == 3:
+        wifi_error()
+    elif state == 0:
         stop_http_server()
         if wifi_led:
             wifi_led.off()
@@ -64,7 +87,9 @@ def deactivate_wifi():
 # get result of start wifi script
 def wifi_activated(state):
     logger.debug("wifi activated: " + str(state))
-    if state == 2:
+    if state == 3:
+        wifi_error()
+    elif state == 2:
         if wifi_led:
             wifi_led.on()
         # send current log if exists and configured

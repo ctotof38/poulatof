@@ -5,8 +5,12 @@ This project will be an automatic door open/close for chicken. It is based on Ra
 functionalities :
 - if the wifi button is set, long press start Wifi, short press stop Wifi. When Wifi is on, a security set it off after 15 minutes. To connect to a Wifi network, the configuration must be set (describe in this document)
 - if the wifi LED is set, blink during looking for Wifi network, on when Wifi connected, off when Wifi stopped
-- if the motor button is set, triple quickly press stop engine, short press reverse engine, and long press ready for a specific action (not defined currently)
+- if the motor button is set, three quickly press stops engine, short press reverses engine, and long press ready for a specific action (not defined currently)
 - if the sensor up and down are set, the motor is automatically stopped when it is reached. In any case, the motor is stopped after a period of time
+- When WIFI is on, a http server is started to answer to some API requests :
+  * http://<ip_of_your_raspberry>:54321/UP
+  * http://<ip_of_your_raspberry>:54321/DOWN
+  * http://<ip_of_your_raspberry>:54321/STOP
 
 Because most of time, this Raspberry hasn't network, a RTC (Real Time Clock) chip is added to keep date and time.
 
@@ -441,8 +445,10 @@ Now, all is fine. You just have to launch the program at startup. You have to si
 
 ```yaml
 sudo vi /etc/rc.local
-/home/totof/door_daemon.sh
+su totof -c /home/totof/door_daemon.sh
 ```
+
+In this example, totof is the user, don't forget to use the name you set.
 
 ## 4. The ultimate configuration
 
