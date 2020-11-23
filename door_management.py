@@ -5,7 +5,7 @@
 #
 # manage a button to activate/deactivate Wifi : long press to activate
 # manage a button to manually open/close door or stop it
-#     long press to stop it
+#     quickly 3 press to stop it
 #     short press toggle
 # manage LED
 #     blink to indicate look for a Wifi network
@@ -32,6 +32,7 @@ from datetime import datetime
 import threading
 import os
 import os.path
+import subprocess
 from elements.advanced_elements import AdvancedButton
 from elements.advanced_elements import MasterButton
 from elements.advanced_elements import AdvancedLed
@@ -66,6 +67,8 @@ def wifi_error():
     with open(saved_file, 'w') as file:
         file.writelines(current_log)
     # now, reboot server
+    action = ["sudo", "/sbin/shutdown", "-r", "0"]
+    subprocess.run(action, timeout=60)
 
 
 def wifi_deactivated(state):
