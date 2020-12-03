@@ -1,18 +1,21 @@
 # poulatof
 
-This project will be an automatic door open/close for chicken. It is based on Raspberry Pi Zero WH, Raspberry Pi OS and Python. The goal of this project is to have an electronic system power on by battery and solar panel. The door will be open at sunrise, and close at sunset. By default, HDMI, sound and Wifi are deactivated for low consumption. This system use UTC time according to GNSS position, so no need to use any timezone.
+This project will be an automatic door open/close for chicken. It is based on Raspberry Pi Zero WH, Raspberry Pi OS and Python. The goal of this project is to have an electronic system power on by battery and solar panel. The door will be open at sunrise, and close at sunset. By default, HDMI, sound and Wifi are deactivated for low consumption. This system use UTC time, so no need to use any timezone.
 
 functionalities :
-- if the wifi button is set, long press start Wifi, short press stop Wifi. When Wifi is on, a security set it off after 15 minutes. To connect to a Wifi network, the configuration must be set (describe in this document)
-- if the wifi LED is set, blink during looking for Wifi network, on when Wifi connected, off when Wifi stopped
+- if the wifi button is set, long press start Wifi, short press stop Wifi. When Wifi is ON, a security set it OFF after 15 minutes. To connect to a Wifi network, the configuration must be set (describe in this document)
+- if the wifi LED is set, blink during looking for Wifi network, ON when Wifi connected, OFF when Wifi stopped
 - if the motor button is set, three quickly press stops engine, short press reverses engine, and long press ready for a specific action (not defined currently)
-- if the sensor up and down are set, the motor is automatically stopped when it is reached. In any case, the motor is stopped after a period of time
+- if the sensor up and down are set, the motor is automatically stopped when they are reached. In any case, the motor is stopped after a period of time
 - When WIFI is on, a http server is started to answer to some API requests :
   * http://<ip_of_your_raspberry>:54321/UP
   * http://<ip_of_your_raspberry>:54321/DOWN
   * http://<ip_of_your_raspberry>:54321/STOP
 
-Because most of time, this Raspberry hasn't network, a RTC (Real Time Clock) chip is added to keep date and time.
+When the program start, it check door state according to hour. And open or close door in this case. Usable when reboot.
+Because most of time, this Raspberry hasn't network, a RTC (Real Time Clock) chip is added to keep date and time. Without, there is a big derivation time.
+Because Wifi on Raspberry Pi Zero fall down sometimes, there is an automatic reboot if it can set ON or OFF
+An optional watchdog can be set to reboot system if program is locked
 
 All actions describe here were done on a Linux computer, so adjust some of them for a Windows environment.
 
@@ -269,7 +272,7 @@ disable sound equipment
 echo "blacklist snd_bcm2835" |sudo tee /etc/modprobe.d/blacklist-sound.conf
 ```
 
-disable ACT led and HDMI. You'll have to update file /etc/rc.local
+disable ACT led and HDMI. You'll have to update file /etc/rc.local. Add the lines (in this example with vi) just before the exit command
 
 ```yaml
 sudo vi /etc/rc.local
@@ -441,7 +444,7 @@ You can now use it in your python mail script to connect to the gmail account to
 
 ### 3.10. automatic start
 
-Now, all is fine. You just have to launch the program at startup. You have to simply add a new line in /etc/rc.local
+Now, all is fine. You just have to launch the program at startup. You have to simply add a new line in /etc/rc.local. Add the line (in this example with vi) just before the exit command
 
 
 ```yaml
@@ -451,11 +454,32 @@ su totof -c /home/totof/door_daemon.sh
 
 In this example, totof is the user, don't forget to use the name you set.
 
+### 3.11. watchdog
+
+The program writes every 5 minutes the file /tmp/watchdog_hen.txt, which contains the time in second
+This package is provided with the file : watchdog.sh
+
+You just have to configure the root crontab each 5 minutes with this script, which checks the value of /tmp/watchdog_hen.txt with the current time. If there is more than 15 minutes, it considers the program is out. And reboot the system
+
+```yaml
+crontab -l 2>/dev/null > /tmp/current_cron
+echo '5 * * * * /home/totof/watchdog.sh' >> /tmp/current_cron
+crontab /tmp/current_cron
+crontab -l
+5 * * * * /home/totof/watchdog.sh
+```
+
+You can check the configuration by this command 
+
+```yaml
+crontab -l
+5 * * * * /home/totof/watchdog.sh
+```
+
 ## 4. The ultimate configuration
 
-When all is ready, you just have to configure the Wifi network of your Raspberry with the shared Wifi of your smartphone. Then, system is working on its own. And when you want to have a resume, you just have to active your shared Wifi, press Wifi button of this system, and you'll receive the last actions.
+When all is ready, you just have to configure the Wifi network of your Raspberry with the shared Wifi of your smartphone. Then, system is working on its own. And when you want to have a resume, you just have to activate your shared Wifi, press Wifi button of this system, and you'll receive the last actions.
 
-If you are a little nervous with autonomous system, you can add in the root crontab a reboot machine each X days. But you lose your report.
 
 
 
