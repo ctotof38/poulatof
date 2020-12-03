@@ -42,6 +42,7 @@ from elements.automatic_door import AutomaticControl
 from elements.email_sender import EmailSender
 from elements.http_server import ApiHttpServer
 from elements.http_server import CommandRequestHandler
+from elements.watchdog import WatchDog
 
 RASPBERRY = True
 try:
@@ -252,6 +253,7 @@ if __name__ == "__main__":
     except KeyError:
         pass
 
+    # the button to manage the motor
     try:
         if configuration['motor_button_gpio']:
             motor_button = MasterButton(configuration['motor_button_gpio'], toggle_door, other_action,
@@ -260,6 +262,7 @@ if __name__ == "__main__":
     except KeyError:
         pass
 
+    # the motor
     try:
         try:
             timeout = configuration['motor_timeout']
@@ -273,6 +276,7 @@ if __name__ == "__main__":
         logger.error("Need at least motor GPIO")
         exit(1)
 
+    # the close door sensor
     try:
         if configuration['door_closed_gpio'] and motor:
             motor.set_close_sensor(configuration['door_closed_gpio'])
@@ -280,6 +284,7 @@ if __name__ == "__main__":
     except KeyError:
         pass
 
+    # the open door sensor
     try:
         if configuration['door_opened_gpio'] and motor:
             motor.set_open_sensor(configuration['door_opened_gpio'])
@@ -304,12 +309,15 @@ if __name__ == "__main__":
     except KeyError:
         pass
 
+    watchdog = WatchDog(30)
+
     try:
         if RASPBERRY:
             pause()
         else:
             app.show_ui()
     except (KeyboardInterrupt, SystemExit):
+        watchdog.stop()
         for thread in threading.enumerate():
             logger.debug(thread.name)
 

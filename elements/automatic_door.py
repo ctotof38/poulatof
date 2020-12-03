@@ -32,11 +32,15 @@ class AutomaticControl:
         today = datetime.utcnow()
 
         if open_hour < close_hour:
+            # in this case, door must be closed
+            self.motor.close_door()
             logger.info("next open UTC: " + str(open_hour))
             next_time = (open_hour - today).total_seconds()
             self.timer = threading.Timer(next_time, self.open_door)
             self.timer.start()
         else:
+            # in this case, door must be opened
+            self.motor.open_door()
             logger.info("next close UTC: " + str(close_hour))
             next_time = (close_hour - today).total_seconds()
             self.timer = threading.Timer(next_time, self.close_door)
@@ -53,5 +57,4 @@ class AutomaticControl:
         self.motor.close_door()
         time.sleep(10)
         self.automatic_control()
-
 
