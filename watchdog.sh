@@ -5,11 +5,11 @@
 # door open/close: /tmp/watchdog_hen.txt
 # This file contains time in seconds, updated each 5 minutes
 # by default
-# if current date it greater than 600 seconds, we consider
-# the program out. So, reboot the system
+# if current date it greater than 900 seconds (15  min),
+# we consider the program is out. So, reboot the system
 # ------------------------------------------------
 
-MAX_DELTA=600
+MAX_DELTA=900
 
 hen_program=$(cat /tmp/watchdog_hen.txt 2>/dev/null)
 if [ $? -ne 0 ]
