@@ -23,5 +23,5 @@ delta=$(expr $current_date - $hen_program)
 
 if [ $delta -gt $MAX_DELTA ]
 then
-  /sbin/shutdown -r 0
+  sudo /sbin/shutdown -r 0
 fi
