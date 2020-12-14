@@ -398,22 +398,18 @@ pip install pyephem
 
 ### 3.8. commands with root privilege
 
-The current program is able to activate/deactivate Wifi. So, it needs to use the ifconfig command with root privilege.
-And sometimes, on Raspberry Pi Zero, the Wifi has problem. So, if Wlan interface has problem, the program reboot the server, only one time. If problem already exists after, it stops.
+Because we have change default user, the sudo command without password is deactivated. To restore it, go to /etc/sudoers.d, and edit the file 010_pi-nopasswd.
 
-To run some sudo command from your python script without password, create a file in the directory /etc/sudoers.d to describe allowed admin commands without password
-
-For example, /etc/sudoers.d/011_totof-nopasswd . This example describes admin user (ADMIN), admin commands (ADMIN_CMDS) and all the admin user to run admin commands without passwd
+It contains only one line:
 
 ```yaml
-# User alias specification
-User_Alias ADMIN = totof
+pi ALL=(ALL) NOPASSWD: ALL
+```
 
-# Cmnd alias specification
-Cmnd_Alias ADMIN_CMDS = /sbin/ifconfig,/sbin/shutdown
+change the name pi by your new user name, in our example totof. The content become:
 
-# Allow members of group sudo to execute any command
-ADMIN   ALL=(root) NOPASSWD: ADMIN_CMDS
+```yaml
+totof ALL=(ALL) NOPASSWD: ALL
 ```
 
 ### 3.9. program configuration
