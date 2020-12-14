@@ -70,10 +70,10 @@ class WifiManagement:
     #   3 if an error occurs (bad interface, ...)
     def __check_wifi__(self, return_code):
         logger.debug("check_wifi : " + str(return_code))
-        if return_code != 0:
+        if return_code == 3:
             if self.current_callback:
-                self.current_callback(3)
-            return 3
+                self.current_callback(return_code)
+            return return_code
 
         if self.interface:
             action = [self.wifi_script, "-c", "-n", self.interface, "-t", str(self.timeout), "-r",
