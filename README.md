@@ -285,7 +285,7 @@ tvservice -o
 
 ### 3.5. RTC module
 
-Because the Raspberry Pi clock is bad, and we want a system which work without network connection, we had the RTC module DS3231. You can select a model with simple battery or rechargeable battery 2032
+Because the Raspberry Pi clock is bad, and we want a system which works without network connection, we add the RTC module DS3231. You can select a model with simple battery or rechargeable battery 2032
 
 Once installed, activate I2C port
 
@@ -345,12 +345,12 @@ sudo hwclock
 2020-12-25 00:00:07.732169+01:00
 ```
 
-update /etc/rc.local to configure RTC at startup
+update /etc/rc.local to configure RTC at startup. Don't forget a sudo before hwclock, otherwise it doesn't work, but I don't know why !
 ```yaml
 vi /etc/rc.local
 
 echo ds3231 0x68 > /sys/class/i2c-adapter/i2c-1/new_device
-hwclock -s
+sudo hwclock -s
 ```
 
 deactivate fake service which simulate clock
@@ -429,8 +429,8 @@ the configuration file looks like:
   "motor_forward_gpio": 4,
   "motor_backward_gpio": 14,
   "door_closed_gpio": 5,
-  "door_opened_gpio": 6,
-  "wifi_led_gpio": 10,
+  "door_opened_gpio": 13,
+  "wifi_led_gpio": 21,
   "motor_timeout": 25,
   "wifi_timeout": 20,
   "wifi_at_startup": false,
@@ -540,8 +540,9 @@ You just have to configure the root crontab each 5 minutes with this script, whi
 
 ```yaml
 crontab -l 2>/dev/null > /tmp/current_cron
-echo '5 * * * * /home/totof/watchdog.sh' >> /tmp/current_cron
+echo "5 * * * * $HOME/watchdog.sh" >> /tmp/current_cron
 crontab /tmp/current_cron
+
 crontab -l
 5 * * * * /home/totof/watchdog.sh
 ```
