@@ -27,7 +27,7 @@ If you just want to test it, there is only one need : python3
 
 Otherwise, you'll need a Raspberry Pi and some electronics components.
 
-## 2. standard Linux Environment
+## 2. Computer Linux Environment to check program
 
 ### 2.1. Python
 
@@ -283,7 +283,84 @@ echo 1 | tee /sys/class/leds/led0/brightness
 tvservice -o
 ```
 
-### 3.5. Software installation
+### 3.5. RTC module
+
+Because the Raspberry Pi clock is bad, and we want a system which work without network connection, we had the RTC module DS3231. You can select a model with simple battery or rechargeable battery 2032
+
+Once installed, activate I2C port
+
+```yaml
+sudo raspi-config
+5 - interfacing option
+P5 - I2C
+```
+
+Install next packages
+
+```yaml
+sudo apt-get install python-smbus
+sudo apt-get install i2c-tools
+```
+
+And check port
+```yaml
+sudo i2cdetect -y 1
+
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+50: -- -- -- -- -- -- -- 57 -- -- -- -- -- -- -- --
+60: -- -- -- -- -- -- -- -- 68 -- -- -- -- -- -- --
+70: -- -- -- -- -- -- -- --
+```
+
+the port 68 must appear
+
+configure system to use it
+
+```yaml
+echo ds3231 0x68 | sudo tee /sys/class/i2c-adapter/i2c-1/new_device
+ds3231 0x68
+```
+
+check RTC module value
+
+```yaml
+sudo hwclock
+2000-01-01 01:16:32.951079+01:00
+```
+
+write current date and check it
+
+```yaml
+date
+Mon Dec 25 00:00:07 CET 2020
+
+sudo hwclock -w
+
+sudo hwclock
+2020-12-25 00:00:07.732169+01:00
+```
+
+update /etc/rc.local to configure RTC at startup
+```yaml
+vi /etc/rc.local
+
+echo ds3231 0x68 > /sys/class/i2c-adapter/i2c-1/new_device
+hwclock -s
+```
+
+deactivate fake service which simulate clock
+
+```yaml
+sudo update-rc.d fake-hwclock disable
+sudo update-rc.d ntp disable
+```
+
+### 3.6. Software installation
 
 In the current directory, you'll find a script named : save.sh
 
@@ -304,7 +381,7 @@ cd
 tar xf /tmp/door_management.tgz
 ```
 
-### 3.6. Python
+### 3.7. Python
 
 You will use a virtual environment to not overload your system. So, you need to launch some commands before starting
 
@@ -319,7 +396,7 @@ pip install RPi.GPIO
 pip install pyephem
 ```
 
-### 3.7. commands with root privilege
+### 3.8. commands with root privilege
 
 The current program is able to activate/deactivate Wifi. So, it needs to use the ifconfig command with root privilege.
 And sometimes, on Raspberry Pi Zero, the Wifi has problem. So, if Wlan interface has problem, the program reboot the server, only one time. If problem already exists after, it stops.
@@ -339,7 +416,7 @@ Cmnd_Alias ADMIN_CMDS = /sbin/ifconfig,/sbin/shutdown
 ADMIN   ALL=(root) NOPASSWD: ADMIN_CMDS
 ```
 
-### 3.8. program configuration
+### 3.9. program configuration
 
 This program uses default configuration file chicken.json. You can change it with option -c.
 
@@ -418,7 +495,7 @@ So, when email is activated, each time you activate Wifi, you receive a report. 
 This case shows the time change the 2020-10-25 :)
 
 
-### 3.9. email configuration
+### 3.10. email configuration
 
 To use the email mechanism, you have to create a google account with an application password:
 https://support.google.com/accounts/answer/185833?hl=en
@@ -442,7 +519,7 @@ Once done, return to this menu, you have a new option
 
 You can now use it in your python mail script to connect to the gmail account to send email
 
-### 3.10. automatic start
+### 3.11. automatic start
 
 Now, all is fine. You just have to launch the program at startup. You have to simply add a new line in /etc/rc.local. Add the line (in this example with vi) just before the exit command
 
@@ -454,7 +531,7 @@ su totof -c /home/totof/door_daemon.sh
 
 In this example, totof is the user, don't forget to use the name you set.
 
-### 3.11. watchdog
+### 3.12. watchdog
 
 The program writes every 5 minutes the file /tmp/watchdog_hen.txt, which contains the time in second
 This package is provided with the file : watchdog.sh
