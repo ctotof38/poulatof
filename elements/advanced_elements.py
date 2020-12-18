@@ -177,14 +177,17 @@ class AdvancedMotor:
         return False
 
     # stop if motor is active. Return True if ok
-    def stop(self, message=None):
+    def stop(self, warning=None, message=None):
         if self.motor.is_active:
             if self.timer:
                 self.timer.cancel()
-            if message:
-                logger.warning("stop door: " + message)
+            if warning:
+                logger.warning("stop door: " + warning)
             else:
-                logger.info("stop door")
+                if message:
+                    logger.info("stop door: " + message)
+                else:
+                    logger.info("stop door")
             self.motor.stop()
             return True
         return False
@@ -208,11 +211,11 @@ class AdvancedMotor:
 
     def close_sensor_pressed(self):
         logger.debug("close door is reached")
-        self.stop()
+        self.stop(message="close door is reached")
 
     def open_sensor_pressed(self):
         logger.debug("open door is reached")
-        self.stop()
+        self.stop(message="open door is reached")
 
     def set_close_sensor(self, gpio):
         if RASPBERRY:
