@@ -554,6 +554,69 @@ crontab -l
 
 When all is ready, you just have to configure the Wifi network of your Raspberry with the shared Wifi of your smartphone. Then, system is working on its own. And when you want to have a resume, you just have to activate your shared Wifi, press Wifi button of this system, and you'll receive the last actions.
 
+## 5. The complete configuration files
+
+### 5.1. /etc/rc.local
+
+```yaml
+#!/bin/sh -e
+
+echo none | tee /sys/class/leds/led0/trigger
+echo 0 | tee /sys/class/leds/led0/brightness
+
+tvservice -o
+
+# activation du RTC
+echo ds3231 0x68 > /sys/class/i2c-adapter/i2c-1/new_device
+sudo hwclock -s
+
+# create watch dog time file, if program abort
+date -u '+%s' > /tmp/watchdog_hen.txt
+chown totof:pi /tmp/watchdog_hen.txt
+
+su totof -c /home/totof/door_daemon.sh
+
+exit 0
+```
+
+### 5.2. /etc/sudoers.d/010_totof-nopasswd
+
+```yaml
+totof ALL=(ALL) NOPASSWD: ALL
+```
+
+### 5.3. /etc/wpa_supplicant/wpa_supplicant.conf
+
+```yaml
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+country=FR
+
+network={
+	ssid="gandalf"
+    psk=0f6df8f157cb65a171d2769d9d4961bfe2756d561983dd12bc04563977ba690d
+}
+```
+
+### 5.4. /etc/fstab
+
+```yaml
+proc            /proc           proc    defaults          0       0
+PARTUUID=1c481aad-01  /boot           vfat    defaults          0       2
+PARTUUID=1c481aad-02  /               ext4    defaults,noatime  0       1
+
+tmpfs	/tmp		tmpfs	defaults 0	0
+tmpfs	/var/log	tmpfs	defaults 0	0
+```
+
+### 5.5. /etc/modprobe.d/blacklist-sound.conf
+
+```yaml
+blacklist snd_bcm2835
+```
+
+
+
 
 
 
