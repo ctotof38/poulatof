@@ -292,11 +292,18 @@ if __name__ == "__main__":
     except KeyError:
         pass
 
+    # fake ephemeris, simulate ephemeris each milliseconds if set in configuration file
+    try:
+        if configuration['fake_ephemeris']:
+            fake_ephemeris = configuration['fake_ephemeris']
+    except KeyError:
+        fake_ephemeris = None
+
     # prepare email sender if configuration is done. It will be used each time wifi is activated
     # if there is log to send
     email = EmailSender(configuration, logger)
 
-    control = AutomaticControl(configuration, motor)
+    control = AutomaticControl(configuration, motor, fake_ephemeris)
     control.automatic_control()
 
     try:
