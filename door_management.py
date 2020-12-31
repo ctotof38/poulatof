@@ -316,7 +316,7 @@ if __name__ == "__main__":
     except KeyError:
         pass
 
-    watchdog = WatchDog(30)
+    watchdog = WatchDog(300)
 
     try:
         if RASPBERRY:
