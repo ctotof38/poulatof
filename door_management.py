@@ -5,7 +5,7 @@
 #
 # manage a button to activate/deactivate Wifi : long press to activate
 # manage a button to manually open/close door or stop it
-#     quickly 3 press to stop it
+#     long press to stop it
 #     short press toggle
 # manage LED
 #     blink to indicate look for a Wifi network
@@ -256,8 +256,7 @@ if __name__ == "__main__":
     # the button to manage the motor
     try:
         if configuration['motor_button_gpio']:
-            motor_button = MasterButton(configuration['motor_button_gpio'], toggle_door, other_action,
-                                        multiple_callback=stop_door)
+            motor_button = AdvancedButton(configuration['motor_button_gpio'], toggle_door, stop_door)
             logger.info("motor button activated")
     except KeyError:
         pass
