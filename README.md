@@ -34,7 +34,7 @@ Otherwise, you'll need a Raspberry Pi and some electronics components.
 
 You will use a virtual environment to not overload your system. So, you need to launch some commands before starting
 
-```yaml
+```linux environment
 sudo apt install python3-pip python3-venv
 python3 -m venv venv
 source venv/bin/activate
@@ -45,7 +45,7 @@ pip install pyephem
 
 launch the command :
 
-```yaml
+```start script
 ./door_management.sh
 ```
 
@@ -594,7 +594,7 @@ update_config=1
 country=FR
 
 network={
-	ssid="gandalf"
+    ssid="gandalf"
     psk=0f6df8f157cb65a171d2769d9d4961bfe2756d561983dd12bc04563977ba690d
 }
 ```
