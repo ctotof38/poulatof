@@ -61,7 +61,7 @@ You'll use the Raspberry Pi OS (32-bit) Lite, to have minimum environment and re
 
 Insert SD card into your computer. find the SD card by the command :
 
-```yaml
+```disk list
 lsblk -p
 NAME             MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
 /dev/sda           8:0    0 298,1G  0 disk
@@ -73,7 +73,7 @@ NAME             MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
 
 The SD card can appears in /dev/mmcblkx or /dev/sdx. install the downloaded image. In this example, you use the disk name mmcblk0
 
-```yaml
+```disk size
 sudo dd bs=4M if=2020-08-20-raspios-buster-armhf-lite.img of=/dev/mmcblk0 conv=fsync
 ```
 
@@ -81,7 +81,7 @@ it takes around 5 minutes
 
 remove and install the SDcard in your computer a new time. You can now see it with 2 partitions
 
-```yaml
+```look for sdcard
 lsblk -p
 NAME             MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
 /dev/mmcblk0     179:0    0  29,5G  0 disk 
@@ -91,7 +91,7 @@ NAME             MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
 
 You have to set a minimum of parameters before inserting it in a Raspberry Pi Zero, because it has only WIFI connection. This action must be done with sudo
 
-```yaml
+```activate ssh wifi
 cd /media/totof/boot
 sudo printf "" > ssh
 
@@ -110,7 +110,7 @@ The first command create an empty file with name ssh. The second command vi crea
 
 now, you are ready to insert this SD card into Raspberry Pi, and continue to configure it. Don't forget to umount it before extract it.
 
-```yaml
+```umount sdcard
 cd
 sudo umount /dev/mmcblk0p2 /dev/mmcblk0p1
 ```
@@ -119,7 +119,7 @@ sudo umount /dev/mmcblk0p2 /dev/mmcblk0p1
 
 start your Raspberry Pi. Normally, it will connect to your Wifi network. You can now connect to it with the default user pi. Example with address 192.168.20.100
 
-```yaml
+```connect to
 ssh pi@192.168.20.100
 ```
 
@@ -127,35 +127,35 @@ The default password is raspberry. If it doesn't work, you are probably in engli
 
 configure the system by using command
 
-```yaml
+```config raspberry
 sudo raspi-config
 ```
 
 set French keyboard
-```yaml
+```keyboard
 -> Localisation options
   -> change keyboard layout
 ```
 set local
-```yaml
+```localization
 -> Localisation options
   -> change Locale
 ```
 set TZ
-```yaml
+```timezone
 -> Localisation options
   -> change Time Zone
 ```
 change hostname
-```yaml
+```hostname
 -> Network Options
   -> Hostname
 ```
 
-To preserve your SD card, you set somes directories in tmpfs (it use memory)
+To preserve your SD card, you set somes directories in tmpfs (it use memory). It is important to set /tmp in tmpfs because all temporary files doesn't use SD card !
 
 you add these lines into /etc/fstab
-```yaml
+```fstab
 tmpfs   /tmp            tmpfs   defaults 0      0
 tmpfs   /var/log        tmpfs   defaults 0      0
 ```
@@ -169,7 +169,7 @@ You now set some configurations to improve security
 update the Wifi password by encrypted string, by using the command : wpa_passphrase
 
 You use the same information like previously to configure your network
-```yaml
+```network
 wpa_passphrase gandalf "it's the wizard!"
 
 network={
@@ -183,16 +183,16 @@ You can now update the file /etc/wpa_supplicant/wpa_supplicant.conf and change t
 
 <b>Note, that if you change password or SSID</b> in this file with a new one, you have to launch next command to reconfigure the WIFI:
 
-```yaml
+```reconfigure
 sudo wpa_cli -i wlan0 reconfigure
-```yaml
+```
 
 #### 3.3.2. ssh security
 
 You will now generate certificates, to allow only some computer to connect to it.
 The next command generates in $HOME/.ssh directory the files : id_rsa (private key), id_rsa.pub (public key). Keep default option.
 
-```yaml
+```ssh key
 ssh-keygen -b 4096
 ```
 
@@ -204,50 +204,50 @@ You'll now change the default user name : pi
 
 Activate the root account by setting a password
 
-```yaml
+```root user
 sudo passwd root
 ```
 
 allow ssh root connection. Update file /etc/ssh_config/sshd_config, and add or update line:
-```yaml
+```allow root
 PermitRootLogin yes
 ```
 
 Then, restart ssh services
 
-```yaml
+```restart service
 sudo /etc/init.d/ssh restart
 [ ok ] Restarting ssh (via systemctl): ssh.service.
 ```
 
 disconnect all pi user, and connect to root
 
-```yaml
+```change user
 ssh root@192.168.20.100
 usermod --login totof --home /home/totof --move-home pi
 ```
 
 In this example, the pi user is changed by totof. Once done, disconnect an connect to your new user
 
-```yaml
+```connect to new user
 ssh totof@192.168.20.100
 ```
 
 remove root password in /etc/shadow. Change the root line, set star (*) between the first two colons (:)
 
-```yaml
+```remove root password
 root:*:18545:0:99999:7:::
 ```
 
 change default user password
 
-```yaml
+```default user
 passwd totof
 ```
 
 change default port for SSH. Edit file /etc/ssh/sshd_config and uncomment line port to set your port. Example :
 
-```yaml
+```ssh port
 Port 10022
 ```
 
@@ -255,7 +255,7 @@ If you want to add more security, you can add the certificate of your Linux mach
 
 Your Linux machine contains a public key into $HOME/.ssh (if you generate it by ssh-keygen). You just have to put this public key of your machine to the raspberry. Example with SSH port 10022, user totof, and IP address 192.168.20.100 of your Raspberry
 
-```yaml
+```send public key
 scp -P 10022 -p $HOME/.ssh/id_rsa.pub totof@192.168.20.100:~/.ssh/authorized_keys
 ```
 
@@ -269,13 +269,13 @@ In this chapter, you'll disable some services to consume less and less energy
 
 disable sound equipment
 
-```yaml
+```disable equipment
 echo "blacklist snd_bcm2835" |sudo tee /etc/modprobe.d/blacklist-sound.conf
 ```
 
 disable ACT led and HDMI. You'll have to update file /etc/rc.local. Add the lines (in this example with vi) just before the exit command
 
-```yaml
+```disable LED HDMI
 sudo vi /etc/rc.local
 
 echo none | tee /sys/class/leds/led0/trigger
@@ -290,7 +290,7 @@ Because the Raspberry Pi clock is bad, and we want a system which works without 
 
 Once installed, activate I2C port
 
-```yaml
+```i2c config
 sudo raspi-config
 5 - interfacing option
 P5 - I2C
@@ -298,13 +298,13 @@ P5 - I2C
 
 Install next packages
 
-```yaml
+```RTC package
 sudo apt-get install python-smbus
 sudo apt-get install i2c-tools
 ```
 
 And check port
-```yaml
+```check hardware
 sudo i2cdetect -y 1
 
      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
@@ -322,21 +322,21 @@ the port 68 must appear
 
 configure system to use it
 
-```yaml
+```configure RTC
 echo ds3231 0x68 | sudo tee /sys/class/i2c-adapter/i2c-1/new_device
 ds3231 0x68
 ```
 
 check RTC module value
 
-```yaml
+```get RTC clock
 sudo hwclock
 2000-01-01 01:16:32.951079+01:00
 ```
 
 write current date and check it
 
-```yaml
+```set RTC clock
 date
 Mon Dec 25 00:00:07 CET 2020
 
@@ -347,7 +347,7 @@ sudo hwclock
 ```
 
 update /etc/rc.local to configure RTC at startup. Don't forget a sudo before hwclock, otherwise it doesn't work, but I don't know why !
-```yaml
+```get RTC at startup
 vi /etc/rc.local
 
 echo ds3231 0x68 > /sys/class/i2c-adapter/i2c-1/new_device
@@ -356,7 +356,7 @@ sudo hwclock -s
 
 deactivate fake service which simulate clock
 
-```yaml
+```deactivate fake rtc
 sudo update-rc.d fake-hwclock disable
 sudo update-rc.d ntp disable
 ```
@@ -371,13 +371,13 @@ You just have to send it to your Raspberry, and extract it where you want, for e
 
 send it to /tmp with previous configuration to the Raspberry
 
-```yaml
+```package transfer
 scp -P 10022 ../door_management.tgz totof@my_chicken_raspberry:/tmp
 ```
 
 and in Raspberry, extract it in HOME directory :
 
-```yaml
+```package install
 cd
 tar xf /tmp/door_management.tgz
 ```
@@ -386,7 +386,7 @@ tar xf /tmp/door_management.tgz
 
 You will use a virtual environment to not overload your system. So, you need to launch some commands before starting
 
-```yaml
+```python config
 sudo apt install python3-pip python3-venv python3-gpiozero
 python3 -m venv venv
 source venv/bin/activate
@@ -403,13 +403,13 @@ Because we have change default user, the sudo command without password is deacti
 
 It contains only one line:
 
-```yaml
+```look for root privilege
 pi ALL=(ALL) NOPASSWD: ALL
 ```
 
 change the name pi by your new user name, in our example totof. The content become:
 
-```yaml
+```set root privilege
 totof ALL=(ALL) NOPASSWD: ALL
 ```
 
@@ -419,7 +419,7 @@ This program uses default configuration file chicken.json. You can change it wit
 
 the configuration file looks like:
 
-```yaml
+```package configuration
 {
   "wifi_button_gpio": 23,
   "motor_button_gpio": 24,
@@ -471,7 +471,7 @@ if <b>user_mail</b> and <b>destination_mail</b> exist, the software is ready to 
 - set it into <b>password_mail</b> key in the configuration file
 - update in the source elements/email_sender.py the line:
 
-```yaml
+```gmail password
 password = "gmail_appli_passwd"
 ```
 Thus, it's a little bit more complicated to find it ;)
@@ -479,7 +479,7 @@ Thus, it's a little bit more complicated to find it ;)
 if <b>csv_report</b> is true, the report has comma separator. Otherwise, it seems a text table
 
 So, when email is activated, each time you activate Wifi, you receive a report. And the log rotates, so you don't receive it twice. Here is a text example:
-```yaml
+```report
 +---------------------+-------+
 | 2020-10-23 19:23:32 | close |
 | 2020-10-24 08:04:59 | open  |
@@ -497,7 +497,7 @@ This case shows the time change the 2020-10-25 :)
 To use the email mechanism, you have to create a google account with an application password:
 https://support.google.com/accounts/answer/185833?hl=en
 
-```yaml
+```email configuration
 create google account
 activate 2 step verification
    go to manage you google account
@@ -521,7 +521,7 @@ You can now use it in your python mail script to connect to the gmail account to
 Now, all is fine. You just have to launch the program at startup. You have to simply add a new line in /etc/rc.local. Add the line (in this example with vi) just before the exit command
 
 
-```yaml
+```automatic start
 sudo vi /etc/rc.local
 su totof -c /home/totof/door_daemon.sh
 ```
@@ -535,7 +535,7 @@ This package is provided with the file : watchdog.sh
 
 You just have to configure the root crontab each 5 minutes with this script, which checks the value of /tmp/watchdog_hen.txt with the current time. If there is more than 15 minutes, it considers the program is out. And reboot the system
 
-```yaml
+```watchdog
 crontab -l 2>/dev/null > /tmp/current_cron
 echo "5 * * * * $HOME/watchdog.sh" >> /tmp/current_cron
 crontab /tmp/current_cron
@@ -546,7 +546,7 @@ crontab -l
 
 You can check the configuration by this command 
 
-```yaml
+```check watchdog
 crontab -l
 5 * * * * /home/totof/watchdog.sh
 ```
@@ -559,7 +559,7 @@ When all is ready, you just have to configure the Wifi network of your Raspberry
 
 ### 5.1. /etc/rc.local
 
-```yaml
+```rc.local
 #!/bin/sh -e
 
 echo none | tee /sys/class/leds/led0/trigger
@@ -582,13 +582,13 @@ exit 0
 
 ### 5.2. /etc/sudoers.d/010_totof-nopasswd
 
-```yaml
+```sudoers
 totof ALL=(ALL) NOPASSWD: ALL
 ```
 
 ### 5.3. /etc/wpa_supplicant/wpa_supplicant.conf
 
-```yaml
+```wifi config
 ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
 country=FR
@@ -601,7 +601,7 @@ network={
 
 ### 5.4. /etc/fstab
 
-```yaml
+```fstab
 proc            /proc           proc    defaults          0       0
 PARTUUID=1c481aad-01  /boot           vfat    defaults          0       2
 PARTUUID=1c481aad-02  /               ext4    defaults,noatime  0       1
@@ -612,7 +612,7 @@ tmpfs	/var/log	tmpfs	defaults 0	0
 
 ### 5.5. /etc/modprobe.d/blacklist-sound.conf
 
-```yaml
+```sound
 blacklist snd_bcm2835
 ```
 
