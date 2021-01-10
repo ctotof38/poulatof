@@ -1,8 +1,8 @@
 {
   "wifi_button_gpio": 23,
   "motor_button_gpio": 24,
-  "motor_forward_gpio": 4,
-  "motor_backward_gpio": 14,
+  "motor_forward_gpio": 9,
+  "motor_backward_gpio": 25,
   "door_closed_gpio": 5,
   "door_opened_gpio": 13,
   "wifi_led_gpio": 21,

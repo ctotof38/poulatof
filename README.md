@@ -5,7 +5,7 @@ This project will be an automatic door open/close for chicken. It is based on Ra
 functionalities :
 - if the wifi button is set, long press start Wifi, short press stop Wifi. When Wifi is ON, a security set it OFF after 15 minutes. To connect to a Wifi network, the configuration must be set (describe in this document)
 - if the wifi LED is set, blink during looking for Wifi network, ON when Wifi connected, OFF when Wifi stopped
-- if the motor button is set, three quickly press stops engine, short press reverses engine, and long press ready for a specific action (not defined currently)
+- if the motor button is set, long press stops engine, short press reverses engine
 - if the sensor up and down are set, the motor is automatically stopped when they are reached. In any case, the motor is stopped after a period of time
 - When WIFI is on, a http server is started to answer to some API requests :
   * http://<ip_of_your_raspberry>:54321/UP
@@ -16,6 +16,7 @@ When the program start, it check door state according to hour. And open or close
 Because most of time, this Raspberry hasn't network, a RTC (Real Time Clock) chip is added to keep date and time. Without, there is a big derivation time.
 Because Wifi on Raspberry Pi Zero fall down sometimes, there is an automatic reboot if it can set ON or OFF
 An optional watchdog can be set to reboot system if program is locked
+A configuration describe which GPIO to use, you can update it like you want. BUT, select GPIO with pull down at startup to command the motor, otherwise your motor is turn on during boot process. See https://elinux.org/RPi_BCM2835_GPIOs to use the good GPIO. The default used is correct.
 
 All actions describe here were done on a Linux computer, so adjust some of them for a Windows environment.
 
@@ -422,8 +423,8 @@ the configuration file looks like:
 {
   "wifi_button_gpio": 23,
   "motor_button_gpio": 24,
-  "motor_forward_gpio": 4,
-  "motor_backward_gpio": 14,
+  "motor_forward_gpio": 9,
+  "motor_backward_gpio": 25,
   "door_closed_gpio": 5,
   "door_opened_gpio": 13,
   "wifi_led_gpio": 21,
