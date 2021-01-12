@@ -217,18 +217,28 @@ class AdvancedMotor:
         logger.debug("open door is reached")
         self.stop(message="open door is reached")
 
+    def close_sensor_released(self):
+        logger.debug("close door is released")
+
+    def open_sensor_released(self):
+        logger.debug("open door is released")
+
     def set_close_sensor(self, gpio):
         if RASPBERRY:
-            self.close_sensor = Button(gpio)
+            logger.debug("close sensor: " + str(gpio))
+            self.close_sensor = Button(gpio, bounce_time=0.5)
             self.close_sensor.when_pressed = self.close_sensor_pressed
+            self.close_sensor.when_released = self.close_sensor_released
         else:
             self.close_sensor = CheckButton(gpio, "close")
             self.close_sensor.when_pressed = self.close_sensor_pressed
 
     def set_open_sensor(self, gpio):
         if RASPBERRY:
-            self.open_sensor = Button(gpio)
+            logger.debug("open sensor: " + str(gpio))
+            self.open_sensor = Button(gpio, bounce_time=0.5)
             self.open_sensor.when_pressed = self.open_sensor_pressed
+            self.open_sensor.when_released = self.open_sensor_released
         else:
             self.open_sensor = CheckButton(gpio, "open")
             self.open_sensor.when_pressed = self.open_sensor_pressed
