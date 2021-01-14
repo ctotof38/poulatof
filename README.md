@@ -68,7 +68,7 @@ NAME             MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
 ├─/dev/sda1        8:1    0     1K  0 part
 └─/dev/sda6        8:6    0 201,2G  0 part /opt
 /dev/mmcblk0     179:0    0  29,5G  1 disk
-└─/dev/mmcblk0p1 179:1    0  29,5G  1 part /media/totof/CAFE-D0D0
+└─/dev/mmcblk0p1 179:1    0  29,5G  1 part /media/antoinette/CAFE-D0D0
 ```
 
 The SD card can appears in /dev/mmcblkx or /dev/sdx. install the downloaded image. In this example, you use the disk name mmcblk0
@@ -85,14 +85,14 @@ remove and install the SDcard in your computer a new time. You can now see it wi
 lsblk -p
 NAME             MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
 /dev/mmcblk0     179:0    0  29,5G  0 disk 
-├─/dev/mmcblk0p1 179:1    0   256M  0 part /media/totof/boot
-└─/dev/mmcblk0p2 179:2    0   1,5G  0 part /media/totof/rootfs
+├─/dev/mmcblk0p1 179:1    0   256M  0 part /media/antoinette/boot
+└─/dev/mmcblk0p2 179:2    0   1,5G  0 part /media/antoinette/rootfs
 ```
 
 You have to set a minimum of parameters before inserting it in a Raspberry Pi Zero, because it has only WIFI connection. This action must be done with sudo
 
 ```activate ssh wifi
-cd /media/totof/boot
+cd /media/antoinette/boot
 sudo printf "" > ssh
 
 sudo vi wpa_supplicant.conf
@@ -101,8 +101,8 @@ update_config=1
 country=FR
 
 network={
-     ssid="gandalf"
-     psk="it's the wizard!"
+    ssid="Poupoule38"
+    psk="essai9876543210"
 }
 ```
 
@@ -170,12 +170,11 @@ update the Wifi password by encrypted string, by using the command : wpa_passphr
 
 You use the same information like previously to configure your network
 ```network
-wpa_passphrase gandalf "it's the wizard!"
-
+wpa_passphrase Poupoule38 essai9876543210
 network={
-   ssid="gandalf"
-   #psk="it's the wizard!"
-   psk=0f6df8f157cb65a171d2769d9d4961bfe2756d561983dd12bc04563977ba690d
+    ssid="Poupoule38"
+    #psk="essai9876543210"
+    psk=42e0cbad9fbf93502493dc6c51f951b621f5131906162238e140fa44839b7798
 }
 ```
 
@@ -224,13 +223,13 @@ disconnect all pi user, and connect to root
 
 ```change user
 ssh root@192.168.20.100
-usermod --login totof --home /home/totof --move-home pi
+usermod --login antoinette --home /home/antoinette --move-home pi
 ```
 
-In this example, the pi user is changed by totof. Once done, disconnect an connect to your new user
+In this example, the pi user is changed by antoinette. Once done, disconnect an connect to your new user
 
 ```connect to new user
-ssh totof@192.168.20.100
+ssh antoinette@192.168.20.100
 ```
 
 remove root password in /etc/shadow. Change the root line, set star (*) between the first two colons (:)
@@ -242,7 +241,7 @@ root:*:18545:0:99999:7:::
 change default user password
 
 ```default user
-passwd totof
+passwd antoinette
 ```
 
 change default port for SSH. Edit file /etc/ssh/sshd_config and uncomment line port to set your port. Example :
@@ -253,10 +252,10 @@ Port 10022
 
 If you want to add more security, you can add the certificate of your Linux machine, and set a very difficult password for your default user.
 
-Your Linux machine contains a public key into $HOME/.ssh (if you generate it by ssh-keygen). You just have to put this public key of your machine to the raspberry. Example with SSH port 10022, user totof, and IP address 192.168.20.100 of your Raspberry
+Your Linux machine contains a public key into $HOME/.ssh (if you generate it by ssh-keygen). You just have to put this public key of your machine to the raspberry. Example with SSH port 10022, user antoinette, and IP address 192.168.20.100 of your Raspberry
 
 ```send public key
-scp -P 10022 -p $HOME/.ssh/id_rsa.pub totof@192.168.20.100:~/.ssh/authorized_keys
+scp -P 10022 -p $HOME/.ssh/id_rsa.pub antoinette@192.168.20.100:~/.ssh/authorized_keys
 ```
 
 After that, your computer is allowed to connect to your Raspberry without passwd. 
@@ -372,7 +371,7 @@ You just have to send it to your Raspberry, and extract it where you want, for e
 send it to /tmp with previous configuration to the Raspberry
 
 ```package transfer
-scp -P 10022 ../door_management.tgz totof@my_chicken_raspberry:/tmp
+scp -P 10022 ../door_management.tgz antoinette@my_chicken_raspberry:/tmp
 ```
 
 and in Raspberry, extract it in HOME directory :
@@ -407,10 +406,10 @@ It contains only one line:
 pi ALL=(ALL) NOPASSWD: ALL
 ```
 
-change the name pi by your new user name, in our example totof. The content become:
+change the name pi by your new user name, in our example antoinette. The content become:
 
 ```set root privilege
-totof ALL=(ALL) NOPASSWD: ALL
+antoinette ALL=(ALL) NOPASSWD: ALL
 ```
 
 ### 3.9. program configuration
@@ -523,10 +522,10 @@ Now, all is fine. You just have to launch the program at startup. You have to si
 
 ```automatic start
 sudo vi /etc/rc.local
-su totof -c /home/totof/door_daemon.sh
+su antoinette -c /home/antoinette/door_daemon.sh
 ```
 
-In this example, totof is the user, don't forget to use the name you set.
+In this example, antoinette is the user, don't forget to use the name you set.
 
 ### 3.12. watchdog
 
@@ -541,14 +540,14 @@ echo "5 * * * * $HOME/watchdog.sh" >> /tmp/current_cron
 crontab /tmp/current_cron
 
 crontab -l
-5 * * * * /home/totof/watchdog.sh
+5 * * * * /home/antoinette/watchdog.sh
 ```
 
 You can check the configuration by this command 
 
 ```check watchdog
 crontab -l
-5 * * * * /home/totof/watchdog.sh
+5 * * * * /home/antoinette/watchdog.sh
 ```
 
 ## 4. The ultimate configuration
@@ -573,17 +572,17 @@ sudo hwclock -s
 
 # create watch dog time file, if program abort
 date -u '+%s' > /tmp/watchdog_hen.txt
-chown totof:pi /tmp/watchdog_hen.txt
+chown antoinette:pi /tmp/watchdog_hen.txt
 
-su totof -c /home/totof/door_daemon.sh
+su antoinette -c /home/antoinette/door_daemon.sh
 
 exit 0
 ```
 
-### 5.2. /etc/sudoers.d/010_totof-nopasswd
+### 5.2. /etc/sudoers.d/010_antoinette-nopasswd
 
 ```sudoers
-totof ALL=(ALL) NOPASSWD: ALL
+antoinette ALL=(ALL) NOPASSWD: ALL
 ```
 
 ### 5.3. /etc/wpa_supplicant/wpa_supplicant.conf
@@ -594,7 +593,7 @@ update_config=1
 country=FR
 
 network={
-    ssid="gandalf"
+    ssid="Poupoule38"
     psk=0f6df8f157cb65a171d2769d9d4961bfe2756d561983dd12bc04563977ba690d
 }
 ```
