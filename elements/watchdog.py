@@ -8,7 +8,7 @@ DOG_FILE = "/tmp/watchdog_hen.txt"
 
 
 class WatchDog:
-    def __init__(self, delay=300):
+    def __init__(self, delay=600):
         self.running = True
         self.delay = delay
         logger.debug("start watchdog: " + str(self.delay))
@@ -17,11 +17,10 @@ class WatchDog:
     def send(self):
         utc_time = int(time.time())
         with open(DOG_FILE, 'w') as f:
-            logger.debug("update time")
             f.write(str(utc_time))
 
         if self.running:
-            # save date each 5 minutes
+            # save date each 10 minutes
             timer = threading.Timer(self.delay, self.send)
             logger.debug("next watchdog: " + str(self.delay))
             timer.start()
