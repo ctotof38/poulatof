@@ -415,6 +415,7 @@ antoinette ALL=(ALL) NOPASSWD: ALL
 ### 3.9. program configuration
 
 This program uses default configuration file chicken.json. You can change it with option -c.
+The current configuration is according to this picture : https://github.com/ctotof38/poulatof/blob/main/pictures/pi_zero_connection.png
 
 the configuration file looks like:
 
@@ -424,10 +425,10 @@ the configuration file looks like:
   "motor_button_gpio": 24,
   "motor_forward_gpio": 9,
   "motor_backward_gpio": 25,
-  "door_closed_gpio": 6,
+  "door_closed_gpio": 7,
   "door_opened_gpio": 5,
   "wifi_led_gpio": 21,
-  "motor_timeout": 25,
+  "motor_timeout": 15,
   "wifi_timeout": 20,
   "wifi_at_startup": false,
   "longitude": "2.294270",
