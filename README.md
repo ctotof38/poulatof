@@ -2,6 +2,8 @@
 
 This project is an automatic door open/close for chicken. It is based on Raspberry Pi Zero WH, Raspberry Pi OS and Python. The goal of this project is to have an electronic system power on by battery and solar panel. The door will be open at sunrise, and close at sunset. By default, HDMI, sound and Wifi are deactivated for low consumption. This system use UTC time, so no need to use any timezone.
 
+a little movie of the behavior : https://github.com/ctotof38/poulatof/blob/main/pictures/porte_poule.mp4
+
 functionalities :
 - if the wifi button is set, long press start Wifi, short press stop Wifi. When Wifi is ON, a security set it OFF after 15 minutes. To connect to a Wifi network, the configuration must be set (describe in this document)
 - if the wifi LED is set, blink during looking for Wifi network, ON when Wifi connected, OFF when Wifi stopped
