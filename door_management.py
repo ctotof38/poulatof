@@ -231,11 +231,11 @@ if __name__ == "__main__":
             try:
                 if configuration['wifi_script'] and configuration['wifi_interface']:
                     try:
-                        timeout = configuration['wifi_timeout']
+                        open_timeout = configuration['wifi_timeout']
                     except KeyError:
-                        timeout = 20
+                        open_timeout = 20
                     wifi_management = WifiManagement(configuration['wifi_script'], configuration['wifi_interface'],
-                                                     timeout_wifi_connected=timeout)
+                                                     timeout_wifi_connected=open_timeout)
                 logger.info("Wifi button activated")
             except KeyError:
                 logger.error("if Wifi button, need wifi script and interface")
@@ -264,13 +264,18 @@ if __name__ == "__main__":
     # the motor
     try:
         try:
-            timeout = configuration['motor_timeout']
+            open_timeout = configuration['open_timeout']
         except KeyError:
-            timeout = 20
+            open_timeout = 20
+        try:
+            close_timeout = configuration['close_timeout']
+        except KeyError:
+            close_timeout = 20
 
         if configuration['motor_forward_gpio'] and configuration['motor_backward_gpio']:
             motor = AdvancedMotor(forward=configuration['motor_forward_gpio'],
-                                  backward=configuration['motor_backward_gpio'], max_time=timeout)
+                                  backward=configuration['motor_backward_gpio'], open_timeout=open_timeout,
+                                  close_timeout=close_timeout)
     except KeyError:
         logger.error("Need at least motor GPIO")
         exit(1)

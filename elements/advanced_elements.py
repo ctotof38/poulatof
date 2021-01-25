@@ -133,11 +133,12 @@ class AdvancedLed:
 #          and backward to close door (so, can't run if close_sensor is pressed)
 # max_time is the time before the motor will be stop. It is a security
 class AdvancedMotor:
-    def __init__(self, forward, backward, max_time=120):
+    def __init__(self, forward, backward, open_timeout=20, close_timeout=20):
         self.motor = Motor(forward=forward, backward=backward)
         self.close_sensor = None
         self.open_sensor = None
-        self.max_time = max_time
+        self.open_timeout = open_timeout
+        self.close_timeout = close_timeout
         self.timer = None
 
     # open door if sensor is not pressed. Return True if ok
@@ -147,7 +148,7 @@ class AdvancedMotor:
                 self.timer.cancel()
             logger.info("open door")
             self.motor.forward()
-            self.timer = threading.Timer(self.max_time, self.stop, args=("max time reached",))
+            self.timer = threading.Timer(self.open_timeout, self.stop, args=("max time reached",))
             self.timer.start()
             return True
         return False
@@ -159,7 +160,7 @@ class AdvancedMotor:
                 self.timer.cancel()
             logger.info("close door")
             self.motor.backward()
-            self.timer = threading.Timer(self.max_time, self.stop, args=("max time reached",))
+            self.timer = threading.Timer(self.close_timeout, self.stop, args=("max time reached",))
             self.timer.start()
             return True
         return False
@@ -171,7 +172,7 @@ class AdvancedMotor:
                 self.timer.cancel()
             logger.info("reverse door")
             self.motor.reverse()
-            self.timer = threading.Timer(self.max_time, self.stop, args=("max time reached",))
+            self.timer = threading.Timer(self.open_timeout, self.stop, args=("max time reached",))
             self.timer.start()
             return True
         return False

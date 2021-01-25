@@ -72,12 +72,12 @@ class AutomaticControl:
         self.motor.open_door()
         # wait at least max_time + delta, if not, next automatic_control
         # should send command to motor if sensor is not reached
-        time.sleep(self.motor.max_time + 10)
+        time.sleep(self.motor.open_timeout + 10)
         self.automatic_control(first=False)
 
     def close_door(self):
         logger.debug("automatic close door")
         self.motor.close_door()
-        time.sleep(self.motor.max_time + 10)
+        time.sleep(self.motor.open_timeout + 10)
         self.automatic_control(first=False)
 
