@@ -1,44 +1,64 @@
 import re
 
 
-fields_to_look_for = re.compile(r'(^[^,]+).*advanced_elements.*INFO.*(close|open)')
+open_close_actions = re.compile(r'(^[^,]+).*advanced_elements.*(INFO).*(close|open) door$')
+warning_messages = re.compile(r'(^[^,]+).*advanced_elements.*(WARNING|ERROR) - (.*)')
 
 
 def format_data(log_content, csv=False):
-    found_data = []
+    found_data = {}
+    max_size_level = 0
+    max_size_message = 0
 
     for line in log_content:
-        found = fields_to_look_for.findall(line)
+        found = open_close_actions.findall(line)
         if found:
-            found_data.append(found)
+            date = found[0][0]
+            level = found[0][1]
+            message = found[0][2]
+            if len(level) > max_size_level:
+                max_size_level = len(level)
+            if len(message) > max_size_message:
+                max_size_message = len(message)
+            found_data[date] = [level, message]
+        found = warning_messages.findall(line)
+        if found:
+            date = found[0][0]
+            level = found[0][1]
+            message = found[0][2]
+            if len(level) > max_size_level:
+                max_size_level = len(level)
+            if len(message) > max_size_message:
+                max_size_message = len(message)
+            found_data[date] = [level, message]
 
     if csv:
         formatted_data = __csv_format__(found_data)
     else:
-        formatted_data = __str_format__(found_data)
+        formatted_data = __str_format__(found_data, max_size_level, max_size_message)
 
     return '\n'.join(formatted_data)
 
 
-def __str_format__(found_data):
+def __get_space(word, max_size):
+    if len(word) == max_size:
+        return ""
+    else:
+        size = max_size - len(word)
+        return " " * size
+
+
+def __str_format__(found_data, max_level=4, max_message=5):
     formatted_data = []
 
     if len(found_data) > 0:
-        current_date, action = found_data[0][0]
-        # calculate length of field + space before and after
-        date_length = len(current_date) + 2
-        action_length = len('close') + 2
-        begin_end = '+'.ljust(date_length + 1, '-') + '+'.ljust(action_length + 1, '-') + '+'
-        formatted_data.append(begin_end)
-        for found_fields in found_data:
-            current_date, action = found_fields[0]
-            # close has greater length than open
-            if len(action) == 5:
-                end = ' |'
-            else:
-                end = '  |'
-            formatted_data.append("| " + current_date + " | " + action + end)
-        formatted_data.append(begin_end)
+        for date in sorted(found_data.keys()):
+            level = found_data[date][0]
+            message = found_data[date][1]
+            formatted_message = '| ' + date + ' | ' + level
+            formatted_message += __get_space(level, max_level) + ' | ' + message
+            formatted_message += __get_space(message, max_message) + ' |'
+            formatted_data.append(formatted_message)
 
     return formatted_data
 
@@ -47,9 +67,11 @@ def __csv_format__(found_data):
     formatted_data = []
 
     if len(found_data) > 0:
-        for found_fields in found_data:
-            current_date, action = found_fields[0]
-            formatted_data.append(current_date + ';' + action)
+        for date in sorted(found_data.keys()):
+            level = found_data[date][0]
+            message = found_data[date][1]
+            formatted_data.append(date + ';' + level + ';' + message)
+
     return formatted_data
 
 
