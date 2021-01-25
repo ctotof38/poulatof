@@ -431,8 +431,9 @@ the configuration file looks like:
   "motor_backward_gpio": 25,
   "door_closed_gpio": 7,
   "door_opened_gpio": 5,
+  "open_timeout": 9,
+  "close_timeout": 9,
   "wifi_led_gpio": 21,
-  "motor_timeout": 15,
   "wifi_timeout": 20,
   "wifi_at_startup": false,
   "longitude": "2.294270",
@@ -459,7 +460,7 @@ if <b>wifi_button_gpio</b> is present, it needs <b>wifi_script</b>. if <b>wifi_i
 
 if <b>wifi_at_startup</b> exists, it stop Wifi at startup if value is false
 
-if <b>door_closed_gpio</b> and/or <b>door_open_gpio</b> exist, it corresponds to sensor which detect door at the top or bottom. In this case, the motor is stopped. Otherwise, a timeout is used <b>motor_timeout</b>. Default value is 20 seconds. According to your installation, you'll be able to swap GPIO value closed and opened. Select GPIO with pull up at startup.
+if <b>door_closed_gpio</b> and/or <b>door_open_gpio</b> exist, it corresponds to sensor which detect door at the top or bottom. In this case, the motor is stopped. Otherwise, a timeout is used <b>open_timeout</b> and <b>close_timeout</b>. Default value is 20 seconds. According to your installation, you'll be able to swap GPIO value closed and opened. Select GPIO with pull up at startup. I use two separate timeout because I can see that open door is longer than close door.
 
 if <b>motor_button_gpio</b> exists, you can start/stop the door manually
 
