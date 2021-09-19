@@ -24,9 +24,11 @@ def stop_server():
     http_logger.info("stop HTTP server")
 
 
-actions = [{'command': 'UP', 'function': open_door, "active": True},
+actions = [{'command': 'STOP', 'function': stop_server, "active": True},
+           {'command': 'UP', 'function': open_door, "active": True},
            {'command': 'DOWN', 'function': close_door, "active": True},
-           {'command': 'STOP', 'function': stop_server, "active": True}]
+           {'command': 'FORCE_UP', 'function': open_door, "active": True},
+           {'command': 'FORCE_DOWN', 'function': close_door, "active": True}]
 
 
 # get function according to action nane, None if not found
@@ -56,6 +58,10 @@ class ApiHttpServer(HTTPServer):
                 update_function('UP', args[2][0])
             if len(args[2]) > 1:
                 update_function('DOWN', args[2][1])
+            if len(args[2]) > 2:
+                update_function('FORCE_UP', args[2][2])
+            if len(args[2]) > 3:
+                update_function('FORCE_DOWN', args[2][3])
         self.running = False
         self.count = 0
         self.current_date = datetime.now()

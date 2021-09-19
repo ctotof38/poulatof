@@ -121,6 +121,7 @@ def activate_wifi():
 # False if no motor or can't activate it
 def toggle_door():
     if motor:
+        # reverse door only if motor is running
         if not motor.reverse_door():
             if not motor.open_door():
                 return motor.close_door()
@@ -140,6 +141,18 @@ def close_door():
     return False
 
 
+def force_open_door():
+    if motor:
+        return motor.open_door(True)
+    return False
+
+
+def force_close_door():
+    if motor:
+        return motor.close_door(True)
+    return False
+
+
 # return True if motor was active and stopped
 def stop_door():
     if motor:
@@ -156,7 +169,8 @@ def start_http_server():
 
     if not http_server:
         # activate Http server if Wifi stay activated
-        http_server = ApiHttpServer(server_address, CommandRequestHandler, (open_door, close_door))
+        http_server = ApiHttpServer(server_address, CommandRequestHandler, (open_door, close_door, force_open_door(),
+                                                                            force_close_door()))
 
 
 def stop_http_server():
@@ -314,7 +328,8 @@ if __name__ == "__main__":
         wifi_state = configuration['wifi_at_startup']
         if wifi_state:
             # activate Http server if Wifi stay activated
-            http_server = ApiHttpServer(server_address, CommandRequestHandler, (open_door, close_door))
+            http_server = ApiHttpServer(server_address, CommandRequestHandler, (open_door, close_door,
+                                                                                force_open_door(), force_close_door()))
         else:
             deactivate_wifi()
     except KeyError:

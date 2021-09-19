@@ -140,29 +140,70 @@ class AdvancedMotor:
         self.open_timeout = open_timeout
         self.close_timeout = close_timeout
         self.timer = None
+        # each time open is not possible, increase value
+        # each time close is not possible, decrease value
+        # if (4 < value < -4) reverse motor, probably sensor problem
+        self._open_door = False
+        self.count_action = 0
+
+    # increase current action
+    def _increase_action(self, action=None, reverse=False):
+        logger.debug("action: " + str(action) + "    reverse: " + str(reverse))
+        if action is not None:
+            self._open_door = action
+        if reverse:
+            self._open_door = not self._open_door
+        logger.debug("_open_door: " + str(self._open_door))
+        if self._open_door:
+            self.count_action += 1
+        else:
+            self.count_action -= 1
+        logger.debug("count: " + str(self.count_action))
+
+    def _is_too_many_action(self):
+        if self._open_door:
+            if self.count_action > 2:
+                logger.debug("too many open action")
+                return True
+        else:
+            if self.count_action < -2:
+                logger.debug("too many close action")
+                return True
 
     # open door if sensor is not pressed. Return True if ok
-    def open_door(self):
-        if not self.is_open_sensor_pressed():
+    def open_door(self, force=False):
+        if not self._is_open_sensor_pressed() or force:
             if self.timer:
                 self.timer.cancel()
             logger.info("open door")
+            self._increase_action(action=True)
+            if self._is_too_many_action():
+                # because too many same action, reverse
+                self.count_action = 0
+                return self.close_door(True)
             self.motor.forward()
             self.timer = threading.Timer(self.open_timeout, self.stop, args=("max time reached",))
             self.timer.start()
             return True
+        logger.debug("can't open")
         return False
 
     # close door if sensor is not pressed. Return True if ok
-    def close_door(self):
-        if not self.is_close_sensor_pressed():
+    def close_door(self, force=False):
+        if not self._is_close_sensor_pressed() or force:
             if self.timer:
                 self.timer.cancel()
             logger.info("close door")
+            self._increase_action(action=False)
+            if self._is_too_many_action():
+                # because too many same action, reverse
+                self.count_action = 0
+                return self.open_door(True)
             self.motor.backward()
             self.timer = threading.Timer(self.close_timeout, self.stop, args=("max time reached",))
             self.timer.start()
             return True
+        logger.debug("can't close")
         return False
 
     # reverse if motor is active. Return True if ok
@@ -171,6 +212,7 @@ class AdvancedMotor:
             if self.timer:
                 self.timer.cancel()
             logger.info("reverse door")
+            self._increase_action(reverse=True)
             self.motor.reverse()
             self.timer = threading.Timer(self.open_timeout, self.stop, args=("max time reached",))
             self.timer.start()
@@ -196,18 +238,22 @@ class AdvancedMotor:
     def is_active(self):
         return self.motor.is_active
 
-    # check close sensor. If not present, return True
-    # so, can't run backward to close the door
-    def is_close_sensor_pressed(self):
+    # check close sensor. If not present, return False
+    # so, run backward to close the door
+    def _is_close_sensor_pressed(self):
         if self.close_sensor:
             return self.close_sensor.is_pressed
+        if self._open_door:
+            return False
         return True
 
-    # check open sensor. If not present, return True
-    # so, can't run forward to open the door
-    def is_open_sensor_pressed(self):
+    # check open sensor. If not present, return False
+    # so, run forward to open the door
+    def _is_open_sensor_pressed(self):
         if self.open_sensor:
             return self.open_sensor.is_pressed
+        if not self._open_door:
+            return False
         return True
 
     def close_sensor_pressed(self):

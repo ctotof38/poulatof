@@ -11,8 +11,12 @@ functionalities :
 - if the sensor up and down are set, the motor is automatically stopped when they are reached. In any case, the motor is stopped after a period of time
 - When WIFI is on, a http server is started to answer to some API requests :
   * http://<ip_of_your_raspberry>:54321/UP
+  * http://<ip_of_your_raspberry>:54321/FORCE_UP
   * http://<ip_of_your_raspberry>:54321/DOWN
+  * http://<ip_of_your_raspberry>:54321/FORCE_DOWN
   * http://<ip_of_your_raspberry>:54321/STOP
+
+FORCE_UP and FORCE_DOWN send motor command without checking door sensors. It can be used when a problem occurs on sensor.
 
 When the program start, it check door state according to hour. And open or close door in this case. Usable when reboot.
 Because most of time, this Raspberry hasn't network, a RTC (Real Time Clock) chip is added to keep date and time. Without, there is a big derivation time.

@@ -12,7 +12,7 @@
   "wifi_at_startup": false,
   "longitude": "5.712607",
   "latitude": "45.089663",
-  "log_level": "info",
+  "log_level": "debug",
   "security_time": 2200,
   "wifi_script": "./wifi_control.sh",
   "wifi_interface": "wlp1s0",
