@@ -334,6 +334,26 @@ echo ds3231 0x68 | sudo tee /sys/class/i2c-adapter/i2c-1/new_device
 ds3231 0x68
 ```
 
+reboot the Raspberry Pi
+
+After this, check the device a new time
+
+```check hardware
+sudo i2cdetect -y 1
+
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+50: -- -- -- -- -- -- -- 57 -- -- -- -- -- -- -- --
+60: -- -- -- -- -- -- -- -- UU -- -- -- -- -- -- --
+70: -- -- -- -- -- -- -- --
+```
+
+If all is ok, the 68 value is changed by UU
+
 check RTC module value
 
 ```get RTC clock
