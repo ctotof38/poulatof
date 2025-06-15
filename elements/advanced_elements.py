@@ -146,8 +146,13 @@ class AdvancedMotor:
         self._open_door = False
         self.count_action = 0
 
-    # increase current action
     def _increase_action(self, action=None, reverse=False):
+        """increase current action
+
+        Args:
+            action (_type_, optional): True when open, False when close. Defaults to None.
+            reverse (bool, optional): reverse action when True. Defaults to False.
+        """
         logger.debug("action: " + str(action) + "    reverse: " + str(reverse))
         if action is not None:
             self._open_door = action
@@ -162,16 +167,23 @@ class AdvancedMotor:
 
     def _is_too_many_action(self):
         if self._open_door:
-            if self.count_action > 2:
+            if self.count_action >= 2:
                 logger.debug("too many open action")
                 return True
         else:
-            if self.count_action < -2:
+            if self.count_action <= -2:
                 logger.debug("too many close action")
                 return True
 
-    # open door if sensor is not pressed. Return True if ok
-    def open_door(self, force=False):
+    def open_door(self, force=False) -> bool:
+        """open door if sensor is not pressed
+
+        Args:
+            force (bool, optional): if True, send command to motor without check sensor. Defaults to False.
+
+        Returns:
+            bool: True if ok
+        """
         if not self._is_open_sensor_pressed() or force:
             if self.timer:
                 self.timer.cancel()
@@ -185,11 +197,18 @@ class AdvancedMotor:
             self.timer = threading.Timer(self.open_timeout, self.stop, args=("max time reached",))
             self.timer.start()
             return True
-        logger.debug("can't open")
+        logger.info("can't open, already opened")
         return False
 
-    # close door if sensor is not pressed. Return True if ok
-    def close_door(self, force=False):
+    def close_door(self, force=False) -> bool:
+        """close door if sensor is not pressed
+
+        Args:
+            force (bool, optional): if True, send command to motor without check sensor. Defaults to False.
+
+        Returns:
+            bool: True if ok
+        """
         if not self._is_close_sensor_pressed() or force:
             if self.timer:
                 self.timer.cancel()
@@ -203,7 +222,7 @@ class AdvancedMotor:
             self.timer = threading.Timer(self.close_timeout, self.stop, args=("max time reached",))
             self.timer.start()
             return True
-        logger.debug("can't close")
+        logger.info("can't close, already closed")
         return False
 
     # reverse if motor is active. Return True if ok
@@ -273,7 +292,7 @@ class AdvancedMotor:
     def set_close_sensor(self, gpio):
         if RASPBERRY:
             logger.debug("close sensor: " + str(gpio))
-            self.close_sensor = Button(gpio, bounce_time=1.5)
+            self.close_sensor = Button(gpio)
             self.close_sensor.when_pressed = self.close_sensor_pressed
             self.close_sensor.when_released = self.close_sensor_released
         else:
@@ -283,7 +302,7 @@ class AdvancedMotor:
     def set_open_sensor(self, gpio):
         if RASPBERRY:
             logger.debug("open sensor: " + str(gpio))
-            self.open_sensor = Button(gpio, bounce_time=1.5)
+            self.open_sensor = Button(gpio)
             self.open_sensor.when_pressed = self.open_sensor_pressed
             self.open_sensor.when_released = self.open_sensor_released
         else:

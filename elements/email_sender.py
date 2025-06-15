@@ -38,15 +38,23 @@ class EmailSender:
             # used text report by default
             pass
 
+    def send_message(self, message, subject=None):
+        if self.no_active:
+            return
+        self.__send__(message, subject)
+
     def send(self):
+        """send current log
+        """
         if self.no_active:
             return
 
         # send message after 10 seconds, to be sure DNS is up
-        timer = threading.Timer(10, self.__send__)
+        body = self.__make_log()
+        timer = threading.Timer(10, self.__send__, args=(body))
         timer.start()
 
-    def __send__(self):
+    def __send__(self, body=None, subject='report'):
         msg = MIMEMultipart()
         msg["From"] = self.configuration["user_mail"]
         msg["To"] = self.configuration["destination_mail"]
@@ -60,11 +68,7 @@ class EmailSender:
         mail_logger.debug("ready to send with passwd : " + password)
 
         timestamp = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-        msg["Subject"] = 'report at ' + timestamp
-
-        body = self.logger.get_current_log()
-        if body:
-            body = format_data(body, self.csv_report)
+        msg["Subject"] = f'{subject} at {timestamp}'
 
         if body:
             msg.attach(MIMEText(body, "plain"))
@@ -76,3 +80,9 @@ class EmailSender:
 
             server.sendmail(msg["From"], msg["To"], text)
             server.quit()
+
+    def __make_log(self):
+        body = self.logger.get_current_log()
+        if body:
+            body = format_data(body, self.csv_report)
+        return body

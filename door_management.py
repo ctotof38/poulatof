@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # --------------------------------------------------
 # software develop for Raspberry Pi
 # It use gpiozero. If not installed or another platform, use
@@ -18,12 +20,6 @@
 # read a configuration file which contains the GPIO to use, the position (lon, lat)
 # the script to used to stop/start Wifi, a security time to close door after sunset + this time
 # --------------------------------------------------
-import sys
-
-if not sys.version_info.major == 3:
-    print("Python 3.x or higher is required.")
-    sys.exit(1)
-
 from elements.logger import Logger
 import json
 import argparse
@@ -37,7 +33,6 @@ from elements.advanced_elements import AdvancedButton
 from elements.advanced_elements import MasterButton
 from elements.advanced_elements import AdvancedLed
 from elements.advanced_elements import AdvancedMotor
-from elements.wifi_management import WifiManagement
 from elements.automatic_door import AutomaticControl
 from elements.email_sender import EmailSender
 from elements.http_server import ApiHttpServer
@@ -50,71 +45,6 @@ try:
 except ModuleNotFoundError:
     from simulator.sgpiozero import GpioUi
     RASPBERRY = False
-
-
-# action on Wifi error
-#    problem wifi, bad interface...
-# in this case, save current log in flash, and reboot
-# if file already exists with same date and just hour, stop software, because
-# repeating problem
-def wifi_error():
-    logger.error("wifi error")
-    saved_file = "door_error.log." + datetime.utcnow().strftime("%Y-%m-%dT%H")
-    if os.path.isfile(saved_file):
-        logger.error("stop process to not loop, error already occurs !")
-        os._exit(1)
-    # save log before reboot
-    current_log = logger.get_current_log()
-    with open(saved_file, 'w') as file:
-        file.writelines(current_log)
-    # now, reboot server
-    action = ["sudo", "/sbin/shutdown", "-r", "0"]
-    subprocess.run(action, timeout=60)
-
-
-def wifi_deactivated(state):
-    logger.debug("wifi deactivated: " + str(state))
-    if state == 3:
-        wifi_error()
-    elif state == 0:
-        stop_http_server()
-        if wifi_led:
-            wifi_led.off()
-
-
-def deactivate_wifi():
-    if wifi_management:
-        logger.debug("deactivate WIFI")
-        wifi_management.stop_wifi(wifi_deactivated)
-
-
-# get result of start wifi script
-def wifi_activated(state):
-    logger.debug("wifi activated: " + str(state))
-    if state == 3:
-        wifi_error()
-    elif state == 2:
-        if wifi_led:
-            wifi_led.on()
-        # send current log if exists and configured
-        email.send()
-        start_http_server()
-        if wifi_management:
-            # Wifi activated maximum of time : 600 seconds
-            wifi_management.stop_wifi_after_timer(callback=wifi_deactivated, timeout=600)
-    else:
-        if wifi_led:
-            wifi_led.off()
-            wifi_led.blink(0.1, 5, deactivate_wifi)
-
-
-# blink led if wifi is looking for network
-def activate_wifi():
-    if wifi_management:
-        logger.debug("activate WIFI")
-        if wifi_management.start_wifi(wifi_activated):
-            if wifi_led:
-                wifi_led.blink(0.3)
 
 
 # return True if motor is activate
@@ -209,6 +139,11 @@ if __name__ == "__main__":
         print("can't find configuration file, or bad content, try option -h !")
         exit(1)
 
+    try:
+        server_address = ('', configuration['http_port'])
+    except KeyError:
+        server_address = ('', 54321)
+
     if parameters.debug:
         configuration['log_level'] = 'debug'
 
@@ -238,34 +173,6 @@ if __name__ == "__main__":
     motor = None
     door_closed = None
     door_opened = None
-    wifi_management = None
-    try:
-        if configuration['wifi_button_gpio']:
-            wifi_button = AdvancedButton(configuration['wifi_button_gpio'], deactivate_wifi, activate_wifi)
-            try:
-                if configuration['wifi_script'] and configuration['wifi_interface']:
-                    try:
-                        open_timeout = configuration['wifi_timeout']
-                    except KeyError:
-                        open_timeout = 20
-                    wifi_management = WifiManagement(configuration['wifi_script'], configuration['wifi_interface'],
-                                                     timeout_wifi_connected=open_timeout)
-                logger.info("Wifi button activated")
-            except KeyError:
-                logger.error("if Wifi button, need wifi script and interface")
-                exit(1)
-            except FileNotFoundError:
-                logger.error("if Wifi button, wifi script need to be executable")
-                exit(1)
-    except KeyError:
-        pass
-
-    try:
-        if configuration['wifi_led_gpio']:
-            wifi_led = AdvancedLed(configuration['wifi_led_gpio'])
-            logger.info("wifi Led activated")
-    except KeyError:
-        pass
 
     # the button to manage the motor
     try:
@@ -277,26 +184,25 @@ if __name__ == "__main__":
 
     # the motor
     try:
-        try:
-            open_timeout = configuration['open_timeout']
-        except KeyError:
-            open_timeout = 20
-        try:
-            close_timeout = configuration['close_timeout']
-        except KeyError:
-            close_timeout = 20
-
-        if configuration['motor_forward_gpio'] and configuration['motor_backward_gpio']:
-            motor = AdvancedMotor(forward=configuration['motor_forward_gpio'],
-                                  backward=configuration['motor_backward_gpio'], open_timeout=open_timeout,
-                                  close_timeout=close_timeout)
+        open_timeout = configuration['open_timeout']
+    except KeyError:
+        open_timeout = 20
+    try:
+        close_timeout = configuration['close_timeout']
+    except KeyError:
+        close_timeout = 20
+    try:
+        motor = AdvancedMotor(forward=configuration['motor_forward_gpio'],
+                              backward=configuration['motor_backward_gpio'], 
+                              open_timeout=open_timeout,
+                              close_timeout=close_timeout)
     except KeyError:
         logger.error("Need at least motor GPIO")
         exit(1)
 
     # the close door sensor
     try:
-        if configuration['door_closed_gpio'] and motor:
+        if motor:
             motor.set_close_sensor(configuration['door_closed_gpio'])
             logger.info("close door sensor activated")
     except KeyError:
@@ -304,7 +210,7 @@ if __name__ == "__main__":
 
     # the open door sensor
     try:
-        if configuration['door_opened_gpio'] and motor:
+        if motor:
             motor.set_open_sensor(configuration['door_opened_gpio'])
             logger.info("open door sensor activated")
     except KeyError:
@@ -324,18 +230,22 @@ if __name__ == "__main__":
     control = AutomaticControl(configuration, motor, fake_ephemeris)
     control.automatic_control()
 
+    '''
+    def run(server_class=HTTPServer, handler_class=RequestHandler, port=8080, token='votre_token_secret'):
+        server_address = ('', port)
+        httpd = server_class(server_address, handler_class, token=token)
+    '''
     try:
-        wifi_state = configuration['wifi_at_startup']
-        if wifi_state:
-            # activate Http server if Wifi stay activated
-            http_server = ApiHttpServer(server_address, CommandRequestHandler, (open_door, close_door,
-                                                                                force_open_door(), force_close_door()))
-        else:
-            deactivate_wifi()
+        http_server = ApiHttpServer(server_address, CommandRequestHandler, (configuration['http_token'], open_door, close_door,
+                                                                           force_open_door(), force_close_door()))
     except KeyError:
-        pass
+        logger.error('No http_token, so no http server !')
 
-    watchdog = WatchDog(300)
+    try:
+        watch_time = configuration['watch_dog']
+    except KeyError:
+        watch_time = 300
+    watchdog = WatchDog(watch_time, email)
 
     try:
         if RASPBERRY:

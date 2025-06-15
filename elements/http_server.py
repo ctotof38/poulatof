@@ -1,12 +1,14 @@
-
-from http.server import BaseHTTPRequestHandler, HTTPServer
-import http.client
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from urllib.parse import parse_qs
 import threading
-import socket
-import logging
 import time
-from datetime import datetime
+import logging
 
+
+UP = 'up'
+DOWN = 'down'
+FORCE_UP = 'force_up'
+FORCE_DOWN = 'force_down'
 
 http_logger = logging.getLogger('http_server')
 
@@ -19,103 +21,134 @@ def close_door():
     http_logger.warning("close door not initialized")
 
 
-# do nothing, just here to not return error when server stopped
-def stop_server():
-    http_logger.info("stop HTTP server")
+actions = {UP: {'function': open_door, "active": True},
+           DOWN: {'function': close_door, "active": True},
+           FORCE_UP: {'function': open_door, "active": True},
+           FORCE_DOWN: {'function': close_door, "active": True}}
 
 
-actions = [{'command': 'STOP', 'function': stop_server, "active": True},
-           {'command': 'UP', 'function': open_door, "active": True},
-           {'command': 'DOWN', 'function': close_door, "active": True},
-           {'command': 'FORCE_UP', 'function': open_door, "active": True},
-           {'command': 'FORCE_DOWN', 'function': close_door, "active": True}]
+def get_command(name: str) -> any:
+    """get function according to action name
 
+    Args:
+        name (str): the name of action, UP, DOWN, FORCE_UP, FORCE_DOWN
 
-# get function according to action nane, None if not found
-def get_command(name):
-    for action in actions:
-        if action['active'] and action['command'] in name:
-            try:
-                return action['function']
-            except KeyError:
-                pass
+    Returns:
+        any: None if not found
+    """
+    if name is None:
+        return None
+    try:
+        action = actions[name]
+        if action['active']:
+            return action['function']
+    except KeyError:
+        pass
     return None
 
 
-def update_function(name, function):
-    for action in actions:
-        if action['active'] and action['command'] in name:
+def update_function(name: str, function: str =None) -> bool:
+    """update default function according to its name
+
+    Args:
+        name (str): the name of action, UP, DOWN, FORCE_UP, FORCE_DOWN
+        function (str, optional): the new function. Defaults to None.
+
+    Returns:
+        bool: True if update is ok
+    """
+    if function is None:
+        return False
+    try:
+        action = actions[name]
+        if action['active']:
             action['function'] = function
-
-
-# specific HTTP server which accept standard parameters (server_address and handler)
-# and two specifics : open_door_callback, close_door_callback
-class ApiHttpServer(HTTPServer):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if len(args) > 2:
-            if len(args[2]) > 0:
-                update_function('UP', args[2][0])
-            if len(args[2]) > 1:
-                update_function('DOWN', args[2][1])
-            if len(args[2]) > 2:
-                update_function('FORCE_UP', args[2][2])
-            if len(args[2]) > 3:
-                update_function('FORCE_DOWN', args[2][3])
-        self.running = False
-        self.count = 0
-        self.current_date = datetime.now()
-        server = threading.Timer(0.5, self.serve_forever)
-        server.start()
-
-    def serve_forever(self):
-        self.running = True
-        while self.running:
-            self.check_attack()
-            self.handle_request()
-
-    def stop_server(self):
-        self.running = False
-        try:
-            conn = http.client.HTTPConnection("localhost", self.server_port, timeout=1)
-            conn.request("GET", "/STOP")
-        except socket.timeout:
-            pass
-        finally:
-            conn.close()
-
-    # if 5 requests received with less than 2 seconds between them,
-    # consider attack, so stop http server
-    def check_attack(self):
-        date = datetime.now()
-        if (date - self.current_date).seconds < 2:
-            self.count += 1
-        else:
-            self.count = 0
-        self.current_date = date
-        if self.count > 5:
-            server = threading.Timer(0.5, self.stop_server)
-            server.start()
+        return True
+    except KeyError:
+        return False
 
 
 class CommandRequestHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
+    def __init__(self, *args, token: str = None, **kwargs):
+        self.token = token
+        super().__init__(*args, **kwargs)
+
+    def do_POST(self):
+        auth_header = self.headers.get('Authorization')
+        if not auth_header or auth_header != self.token:
+            self.send_response(401)
+            self.end_headers()
+            return
+
+        content_length = int(self.headers.get('Content-Length', 0))
+        post_data = self.rfile.read(content_length)
+        data = parse_qs(post_data.decode())
+
         try:
-            command = get_command(str(self.path))
-            if command:
-                thread = threading.Timer(0.5, command)
-                thread.start()
-                self.send_response(200)
-                self.end_headers()
-            else:
-                self.send_error(400)
-                self.end_headers()
-        except BrokenPipeError:
-            # can appear when stop server
-            pass
+            action = data['action'][0]
+        except KeyError:
+            self.send_response(400)
+            self.end_headers()
+            return
+
+        command = get_command(action)
+
+        if command is not None:
+            thread = threading.Timer(0.5, command)
+            thread.start()
+            self.send_response(200)
+            self.end_headers()
+        else:
+            self.send_response(400)
+            self.end_headers()
+            return
 
 
-# --------------- just for test ---------------
+class ApiHttpServer:
+    def __init__(self, port: str, token: str, up = None, down = None, force_up = None, force_down = None):
+        """http server
+
+        Args:
+            port (str): port to use
+            token (str): authentication token
+            up (optional): function to launch for this keyword. Defaults to None.
+            down (optional): function to launch for this keyword. Defaults to None.
+            force_up (optional): function to launch for this keyword. Defaults to None.
+            force_down (optional): function to launch for this keyword. Defaults to None.
+        """
+        self.port = port
+        self.token = token
+        self.server = None
+        self.thread = None
+        update_function(UP, up)
+        update_function(DOWN, down)
+        update_function(FORCE_UP, force_up)
+        update_function(FORCE_DOWN, force_down)
+        self.is_running = False
+
+    def start(self):
+        handler = lambda *args, **kwargs: CommandRequestHandler(*args, token=self.token, **kwargs)
+        self.server = HTTPServer(('localhost', self.port), handler)
+        self.is_running = True
+        self.thread = threading.Thread(target=self._run_server)
+        # stop thread when main program is stopped
+        self.thread.daemon = True
+        http_logger.info(f'Server starts on port {self.port}')
+        self.thread.start()
+
+    def _run_server(self):
+        while self.is_running:
+            self.server.handle_request()
+
+    def stop(self):
+        self.is_running = False
+        if self.server:
+            self.server.server_close()
+        if self.thread:
+            self.thread.join()
+        http_logger.info('Server is stopped')
+
+# Example
 def up_test():
     print("open door updated")
 
@@ -124,14 +157,13 @@ def down_test():
     print("close door updated")
 
 
-if __name__ == "__main__":
-    server_address = ('localhost', 8000)
-    httpd = ApiHttpServer(server_address, CommandRequestHandler, (up_test, down_test))
+if __name__ == '__main__':
+    server = ApiHttpServer(8000, 'secret-token', up_test, down_test)
+    server.start()
 
-    for i in range(100):
-        time.sleep(1)
-        print(str(i) + "-", end='', flush=True)
-        if i > 99:
-            httpd.stop_server()
-
-    print("\nend of test")
+    try:
+        while True:
+            print("Programme principal en cours d'exécution...")
+            time.sleep(50)
+    except KeyboardInterrupt:
+        server.stop()

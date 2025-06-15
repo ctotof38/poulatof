@@ -1,5 +1,5 @@
 import ephem
-from datetime import datetime
+from datetime import datetime, timezone
 import threading
 import time
 import logging
@@ -23,47 +23,46 @@ class AutomaticControl:
         self.fake_start = None
         self.fake_order = True
         if self.fake_time:
-            self.fake_start = datetime.utcnow()
+            self.fake_start = datetime.now()
 
     # first is set to False when call after automatic open/close door, to not open/close door a new time
     def automatic_control(self, first=True):
         observer = ephem.Observer()
         observer.lat, observer.lon = self.latitude, self.longitude
-        observer.date = ephem.Date(datetime.utcnow())
+        observer.date = ephem.Date(datetime.now())
 
-        # goodbye sun
-        sunset = observer.next_setting(ephem.Sun()).datetime()
-        security_time = sunset.timestamp() + self.delta
+        next_goodbye_sun = observer.next_setting(ephem.Sun()).datetime()
+        security_time = next_goodbye_sun.timestamp() + self.delta
+        next_goodbye_sun = datetime.fromtimestamp(security_time)
 
-        close_time = datetime.fromtimestamp(security_time)
-        open_time = observer.next_rising(ephem.Sun()).datetime()
-        today = datetime.utcnow()
+        next_hello_sun = observer.next_rising(ephem.Sun()).datetime()
+        today = datetime.now()
 
         if self.fake_time:
             ts = (today - datetime(1970, 1, 1)).total_seconds() + self.fake_time
             if self.fake_order:
                 self.fake_order = False
-                open_time = datetime.utcfromtimestamp(ts)
-                close_time = datetime.utcfromtimestamp(ts + 1)
+                next_hello_sun = datetime.fromtimestamp(ts)
+                next_goodbye_sun = datetime.fromtimestamp(ts + 1)
             else:
                 self.fake_order = True
-                close_time = datetime.utcfromtimestamp(ts)
-                open_time = datetime.utcfromtimestamp(ts + 1)
+                next_goodbye_sun = datetime.fromtimestamp(ts)
+                next_hello_sun = datetime.fromtimestamp(ts + 1)
 
-        if open_time < close_time:
+        if next_hello_sun < next_goodbye_sun:
             if first:
                 # in this case, door must be closed
                 self.motor.close_door()
-            logger.info("next open UTC: " + str(open_time))
-            next_time = (open_time - today).total_seconds()
+            logger.info("next open UTC: " + str(next_hello_sun))
+            next_time = (next_hello_sun - today).total_seconds()
             self.timer = threading.Timer(next_time, self.open_door)
             self.timer.start()
         else:
             if first:
                 # in this case, door must be opened
                 self.motor.open_door()
-            logger.info("next close UTC: " + str(close_time))
-            next_time = (close_time - today).total_seconds()
+            logger.info("next close UTC: " + str(next_goodbye_sun))
+            next_time = (next_goodbye_sun - today).total_seconds()
             self.timer = threading.Timer(next_time, self.close_door)
             self.timer.start()
 
