@@ -122,7 +122,6 @@ cd /var/log
 sudo rm -rf * && sudo reboot
 ```
 
-
 ### 3.3. ssh security
 
 You will now generate certificates, to allow only some computer to connect to it.
@@ -321,10 +320,14 @@ WantedBy=multi-user.target' |sudo tee /etc/systemd/system/door-daemon.service
 sudo systemctl enable door-daemon.service
 ```
 
+The script called by this service (door_management.sh) wait until 30 seconds that wlan0 is UP. The, it switch OFF the led, send email to
+notify that service will start soon, and launch the door management
+
 ### 3.11. watchdog
 
 The program sends every 5 minutes a notification to the systemd service, which has a watch dog set to 6 minutes. If no signal is received, systemd restart the system
 
+It also check the RPI temperature, and send email once when temperature is higher than 50°c, 70°c and 80°c
 
 ## 4. The ultimate configuration
 
