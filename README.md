@@ -25,8 +25,6 @@ All actions describe here were done on a Linux computer, so adjust some of them 
 
 You can test it on a standard Linux computer, there is a tkinter simulator to check functionalities
 
-a full Raspberry Pi Zero package is available here : https://drive.google.com/drive/folders/173kW235FbL70NTdH9n0bkrRIwO26BrRp?usp=sharing
-
 ## 1. Pre-requisite
 
 If you just want to test it, there is only one need : python3
