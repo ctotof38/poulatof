@@ -293,6 +293,7 @@ echo '
 [Unit]
 Description=Door Daemon Application
 After=network.target
+OnFailure=reboot.target
 
 [Service]
 StandardOutput=append:/tmp/door_systemd.log
@@ -309,7 +310,6 @@ NotifyAccess=all
 StartLimitBurst=3
 StartLimitInterval=1200
 StartLimitAction=reboot
-OnFailure=reboot.target
 
 [Install]
 WantedBy=multi-user.target' |sudo tee /etc/systemd/system/door-daemon.service
