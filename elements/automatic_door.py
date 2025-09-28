@@ -29,14 +29,14 @@ class AutomaticControl:
     def automatic_control(self, first=True):
         observer = ephem.Observer()
         observer.lat, observer.lon = self.latitude, self.longitude
-        observer.date = ephem.Date(datetime.now())
+        observer.date = ephem.Date(datetime.now(timezone.utc))
 
         next_goodbye_sun = observer.next_setting(ephem.Sun()).datetime()
         security_time = next_goodbye_sun.timestamp() + self.delta
         next_goodbye_sun = datetime.fromtimestamp(security_time)
 
         next_hello_sun = observer.next_rising(ephem.Sun()).datetime()
-        today = datetime.now()
+        today = datetime.now(timezone.utc)
 
         if self.fake_time:
             ts = (today - datetime(1970, 1, 1)).total_seconds() + self.fake_time

@@ -162,6 +162,15 @@ WantedBy=multi-user.target' |sudo tee /etc/systemd/system/disable-hdmi.service
 sudo systemctl enable disable-hdmi.service
 ```
 
+disable Bluetooth
+```
+sudo systemctl stop bluetooth.service
+sudo systemctl disable bluetooth.service
+sudo systemctl stop hciuart.service
+sudo systemctl disable hciuart.service
+```
+
+
 ### 3.6. Software installation
 
 In the current directory, you'll find a script named : save.sh
